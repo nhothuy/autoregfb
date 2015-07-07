@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>RandomNameGenerator</id>
+    <version>1.0.4</version>
+    <title>Random Name Generator</title>
+    <authors>Jonathan Tuttle</authors>
+    <owners>Jonathan Tuttle</owners>
+    <projectUrl>https://github.com/jtuttle87/RandomNameGenerator</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Static C# class to generate random names based upon gender.</description>
+    <summary>Static C# class to generate random names based upon gender.</summary>
+    <tags>C# Random Name Generator RandomNameGenerator</tags>
+  </metadata>
+</package>
