@@ -12,6 +12,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -28,6 +29,7 @@ namespace AutoRegFB
         System.Windows.Forms.Timer TIMER_PLAY = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer TIMER_ACCEPT = new System.Windows.Forms.Timer();
         private String FILENAME_FBIDS = String.Format("{0}\\acc.txt", Path.GetDirectoryName(Application.ExecutablePath));
+        private String FILENAME_PROXY = String.Format("{0}\\proxy.txt", Path.GetDirectoryName(Application.ExecutablePath));
         private String FILENAME_FBIDS_OUT = String.Format("{0}\\fbids.txt", Path.GetDirectoryName(Application.ExecutablePath));
         private List<Acc> ACCOUNTS = new List<Acc>();
         private String URL = "http://222.255.29.210:9000/textplus.php?t={0}&e={1}";
@@ -43,6 +45,79 @@ namespace AutoRegFB
         private String URL_REG_FACEBOOK = "https://m.facebook.com/r.php";
         private String URL_FACEBOOK = "https://m.facebook.com";
         private String PASS = "admin123";
+        private Int32 COUNT = 0;
+        private Int32 LIMIT = 1;
+        private List<Proxy> PROXIES = new List<Proxy>();
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private Proxy getProxy()
+        {
+            Proxy retProxy = new Proxy();
+            if (PROXIES.Count == 0) return retProxy;
+            Random rand = new Random(DateTime.Now.ToString().GetHashCode());
+            int index = rand.Next(0, PROXIES.Count);
+            retProxy = PROXIES[index];
+            if (canPing(retProxy.Host))
+            {
+                PROXIES.RemoveAt(index);
+            }
+            else
+            {
+                retProxy = getProxy();
+            }
+            return retProxy;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void getListProxy()
+        {
+            try
+            {
+                String strProxy = MyFile.ReadFile(FILENAME_PROXY);
+                String[] arrProxy = strProxy.Split('\n');
+                foreach (String proxy in arrProxy)
+                {
+                    String sProxy = proxy.Trim();
+                    if (sProxy != null && sProxy.Split(':').Length == 2)
+                    {
+                        Proxy objProxy = new Proxy();
+                        objProxy.Host = sProxy.Split(':')[0].Trim();
+                        objProxy.Port = sProxy.Split(':')[1].Trim();
+                        PROXIES.Add(objProxy);
+                    }
+                }
+            }
+            catch
+            { 
+            
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        private static bool canPing(string address)
+        {
+            Ping ping = new Ping();
+
+            try
+            {
+                PingReply reply = ping.Send(address, 2000);
+                if (reply == null) return false;
+
+                return (reply.Status == IPStatus.Success);
+            }
+            catch (PingException e)
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -405,10 +480,15 @@ namespace AutoRegFB
         private void frmMain_Load(object sender, EventArgs e)
         {
             //
+            getListProxy();
+            //
             ISDECAPTCHA = chkDecaptcha.Checked;
             ISPLAYPK = chkPlayPK.Checked;
             //
             getListAccount();
+            //
+            Proxy proxy = getProxy();
+            setGeckoPreferences(proxy);
             //
             geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
             //
@@ -587,6 +667,18 @@ namespace AutoRegFB
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="proxy"></param>
+        private void setGeckoPreferences(Proxy proxy)
+        {
+            //GeckoPreferences.Default["network.proxy.type"] = 1;
+            //GeckoPreferences.Default["network.proxy.http"] = proxy.Host;
+            //GeckoPreferences.Default["network.proxy.http_port"] = Convert.ToInt32(proxy.Port);
+            //GeckoPreferences.Default["network.proxy.ssl"] = proxy.Host;
+            //GeckoPreferences.Default["network.proxy.ssl_port"] = Convert.ToInt32(proxy.Port);
+        }
+            /// <summary>
+        /// 
+        /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void geckoWebBrowser_DocumentCompleted(object sender, Gecko.Events.GeckoDocumentCompletedEventArgs e)
@@ -595,8 +687,17 @@ namespace AutoRegFB
             {
                 if (STEP == 2)
                 {
-                    //removeCookie();
                     STEP = 1;
+                    COUNT = COUNT + 1;
+                    var account = (from acc in ACCOUNTS
+                                   where acc.Used == false
+                                   select acc).FirstOrDefault();
+                    if (account == null) return;
+                    if (COUNT >= LIMIT)
+                    {
+                        Proxy proxy = getProxy();
+                        setGeckoPreferences(proxy);
+                    }
                     TIMER_REG.Interval = 2000;
                     TIMER_REG.Enabled = true;
                     TIMER_REG.Tick += new System.EventHandler(this.timer_Reg_Tick);
@@ -756,6 +857,16 @@ namespace AutoRegFB
                 {
                     //removeCookie();
                     STEP = 1;
+                    COUNT = COUNT + 1;
+                    var account = (from acc in ACCOUNTS
+                                   where acc.Done == false
+                                   select acc).FirstOrDefault();
+                    if (account == null) return;
+                    if (COUNT >= LIMIT)
+                    {
+                        Proxy proxy = getProxy();
+                        setGeckoPreferences(proxy);
+                    }
                     TIMER_PLAY.Interval = 2000;
                     TIMER_PLAY.Enabled = true;
                     TIMER_PLAY.Tick += new System.EventHandler(this.timer_Play_Tick);
