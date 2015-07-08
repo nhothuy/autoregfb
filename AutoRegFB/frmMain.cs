@@ -45,78 +45,6 @@ namespace AutoRegFB
         private String URL_REG_FACEBOOK = "https://m.facebook.com/r.php";
         private String URL_FACEBOOK = "https://m.facebook.com";
         private String PASS = "admin123";
-        private Int32 COUNT = 0;
-        private Int32 LIMIT = 1;
-        private List<Proxy> PROXIES = new List<Proxy>();
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        private Proxy getProxy()
-        {
-            Proxy retProxy = new Proxy();
-            if (PROXIES.Count == 0) return retProxy;
-            Random rand = new Random(DateTime.Now.ToString().GetHashCode());
-            int index = rand.Next(0, PROXIES.Count);
-            retProxy = PROXIES[index];
-            if (canPing(retProxy.Host))
-            {
-                PROXIES.RemoveAt(index);
-            }
-            else
-            {
-                retProxy = getProxy();
-            }
-            return retProxy;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        private void getListProxy()
-        {
-            try
-            {
-                String strProxy = MyFile.ReadFile(FILENAME_PROXY);
-                String[] arrProxy = strProxy.Split('\n');
-                foreach (String proxy in arrProxy)
-                {
-                    String sProxy = proxy.Trim();
-                    if (sProxy != null && sProxy.Split(':').Length == 2)
-                    {
-                        Proxy objProxy = new Proxy();
-                        objProxy.Host = sProxy.Split(':')[0].Trim();
-                        objProxy.Port = sProxy.Split(':')[1].Trim();
-                        PROXIES.Add(objProxy);
-                    }
-                }
-            }
-            catch
-            { 
-            
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="address"></param>
-        /// <returns></returns>
-        private static bool canPing(string address)
-        {
-            Ping ping = new Ping();
-
-            try
-            {
-                PingReply reply = ping.Send(address, 2000);
-                if (reply == null) return false;
-
-                return (reply.Status == IPStatus.Success);
-            }
-            catch (PingException e)
-            {
-                return false;
-            }
-        }
 
         /// <summary>
         /// 
@@ -480,15 +408,10 @@ namespace AutoRegFB
         private void frmMain_Load(object sender, EventArgs e)
         {
             //
-            getListProxy();
-            //
             ISDECAPTCHA = chkDecaptcha.Checked;
             ISPLAYPK = chkPlayPK.Checked;
             //
             getListAccount();
-            //
-            Proxy proxy = getProxy();
-            setGeckoPreferences(proxy);
             //
             geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
             //
@@ -605,6 +528,7 @@ namespace AutoRegFB
         private void btnRegFB_Click(object sender, EventArgs e)
         {
             //removeCookie();
+            //
             if (geckoWebBrowser.Url.AbsoluteUri != URL_REG_FACEBOOK)
             {
                 geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
@@ -670,11 +594,11 @@ namespace AutoRegFB
         /// <param name="proxy"></param>
         private void setGeckoPreferences(Proxy proxy)
         {
-            //GeckoPreferences.Default["network.proxy.type"] = 1;
+            GeckoPreferences.Default["network.proxy.type"] = 1;
             //GeckoPreferences.Default["network.proxy.http"] = proxy.Host;
             //GeckoPreferences.Default["network.proxy.http_port"] = Convert.ToInt32(proxy.Port);
-            //GeckoPreferences.Default["network.proxy.ssl"] = proxy.Host;
-            //GeckoPreferences.Default["network.proxy.ssl_port"] = Convert.ToInt32(proxy.Port);
+            GeckoPreferences.Default["network.proxy.ssl"] = proxy.Host;
+            GeckoPreferences.Default["network.proxy.ssl_port"] = Convert.ToInt32(proxy.Port);
         }
             /// <summary>
         /// 
@@ -688,15 +612,13 @@ namespace AutoRegFB
                 if (STEP == 2)
                 {
                     STEP = 1;
-                    COUNT = COUNT + 1;
                     var account = (from acc in ACCOUNTS
                                    where acc.Used == false
                                    select acc).FirstOrDefault();
-                    if (account == null) return;
-                    if (COUNT >= LIMIT)
+                    if (account == null)
                     {
-                        Proxy proxy = getProxy();
-                        setGeckoPreferences(proxy);
+                        lblMsg.Text = "All account are used.";
+                        return;
                     }
                     TIMER_REG.Interval = 2000;
                     TIMER_REG.Enabled = true;
@@ -857,15 +779,13 @@ namespace AutoRegFB
                 {
                     //removeCookie();
                     STEP = 1;
-                    COUNT = COUNT + 1;
                     var account = (from acc in ACCOUNTS
                                    where acc.Done == false
                                    select acc).FirstOrDefault();
-                    if (account == null) return;
-                    if (COUNT >= LIMIT)
+                    if (account == null)
                     {
-                        Proxy proxy = getProxy();
-                        setGeckoPreferences(proxy);
+                        lblMsg.Text = "All account invited.";
+                        return;
                     }
                     TIMER_PLAY.Interval = 2000;
                     TIMER_PLAY.Enabled = true;
@@ -1357,6 +1277,7 @@ namespace AutoRegFB
             try
             {
                 //removeCookie();
+                //
                 if (ACCOUNTS == null || ACCOUNTS.Count == 0) return;
                 //Reset done
                 foreach (Acc acc in ACCOUNTS)
