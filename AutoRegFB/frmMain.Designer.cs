@@ -60,7 +60,7 @@
             // 
             // btnLoginFB
             // 
-            this.btnLoginFB.Location = new System.Drawing.Point(575, 60);
+            this.btnLoginFB.Location = new System.Drawing.Point(575, 29);
             this.btnLoginFB.Name = "btnLoginFB";
             this.btnLoginFB.Size = new System.Drawing.Size(99, 23);
             this.btnLoginFB.TabIndex = 4;
@@ -70,7 +70,7 @@
             // 
             // btnResetAll
             // 
-            this.btnResetAll.Location = new System.Drawing.Point(575, 89);
+            this.btnResetAll.Location = new System.Drawing.Point(575, 58);
             this.btnResetAll.Name = "btnResetAll";
             this.btnResetAll.Size = new System.Drawing.Size(99, 23);
             this.btnResetAll.TabIndex = 6;
@@ -89,7 +89,7 @@
             // 
             // btnReset
             // 
-            this.btnReset.Location = new System.Drawing.Point(575, 31);
+            this.btnReset.Location = new System.Drawing.Point(575, 438);
             this.btnReset.Name = "btnReset";
             this.btnReset.Size = new System.Drawing.Size(99, 23);
             this.btnReset.TabIndex = 8;

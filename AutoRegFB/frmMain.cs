@@ -434,6 +434,62 @@ namespace AutoRegFB
         /// <summary>
         /// 
         /// </summary>
+        private void fillInfoFBReset()
+        {
+            lblMsg.Text = String.Format("[REG] Email: {0} Phone {1}", EMAIL, PHONE);
+            GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+
+            //
+            var rand = new Random();
+            Int32 intGender = rand.Next(1, 2);
+            //
+            Gender eGender = Gender.Male;
+            switch (intGender)
+            {
+                case 1:
+                    eGender = Gender.Female;
+                    break;
+                case 2:
+                    eGender = Gender.Male;
+                    break;
+                default:
+                    break;
+            }
+
+            GeckoHtmlElement firstName = document.GetElementsByName("firstname").FirstOrDefault();
+            firstName.SetAttribute("value", NameGenerator.GenerateFirstName(eGender));
+
+            GeckoHtmlElement lastName = document.GetElementsByName("lastname").FirstOrDefault();
+            lastName.SetAttribute("value", NameGenerator.GenerateLastName());
+
+            GeckoHtmlElement email = document.GetElementsByName("email").FirstOrDefault();
+            email.SetAttribute("value", PHONE);
+
+            //gender
+            GeckoSelectElement gender = (GeckoSelectElement)document.GetElementById("gender");
+            gender.SelectedIndex = intGender;
+
+            //day
+            GeckoHtmlElement day = document.GetElementsByName("day").FirstOrDefault();
+            day.SetAttribute("value", "30");
+            //month
+            GeckoHtmlElement month = document.GetElementsByName("month").FirstOrDefault();
+            month.SetAttribute("value", "12");
+            //year
+            GeckoHtmlElement year = document.GetElementsByName("year").FirstOrDefault();
+            year.SetAttribute("value", "1985");
+            //pass
+            GeckoHtmlElement pass = document.GetElementsByName("pass").FirstOrDefault();
+            pass.SetAttribute("value", PASS);
+
+            var signup_button = (GeckoInputElement)document.GetElementById("signup_button");
+
+            signup_button.Click();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         private void fillInfoFB()
         {
             //
@@ -609,6 +665,12 @@ namespace AutoRegFB
         {
             if (TYPE == 1)
             {
+                if (STEP == -1)
+                {
+                    STEP = 1;
+                    fillInfoFBReset();
+                    return;
+                }
                 if (STEP == 2)
                 {
                     STEP = 1;
@@ -678,8 +740,16 @@ namespace AutoRegFB
                 GeckoHtmlElement sendConfirmCode = getGeckoHtmlElementSendConfirmCode(document);
                 if (sendConfirmCode != null)
                 {
-                    sendConfirmCode.Click();
+                    String mobile = getReset(EMAIL);
+                    PHONE = mobile;
+                    updateMobile(EMAIL, mobile);
+                    //
+                    STEP = -1;
+                    geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
                     return;
+                    //
+                    //sendConfirmCode.Click();
+                    //return;
                 }
 
                 //Submit
@@ -929,7 +999,7 @@ namespace AutoRegFB
             foreach (GeckoElement node in nodes)
             {
                 String href = ((GeckoHtmlElement)node).GetAttribute("href");
-                if (href != null && href.Contains("/help/212848065405122"))
+                if (href != null && (href.Contains("/help/212848065405122") || href.Contains("/help/174987089221178")))
                 {
                     return (GeckoHtmlElement)node;
                 }
