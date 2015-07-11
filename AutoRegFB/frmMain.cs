@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -31,6 +32,7 @@ namespace AutoRegFB
         private String FILENAME_FBIDS = String.Format("{0}\\acc.txt", Path.GetDirectoryName(Application.ExecutablePath));
         private String FILENAME_PROXY = String.Format("{0}\\proxy.txt", Path.GetDirectoryName(Application.ExecutablePath));
         private String FILENAME_FBIDS_OUT = String.Format("{0}\\fbids.txt", Path.GetDirectoryName(Application.ExecutablePath));
+        private String FILENAME_FILE_HTML_SAVE = String.Format("{0}\\tmp.html", Path.GetDirectoryName(Application.ExecutablePath));
         private List<Acc> ACCOUNTS = new List<Acc>();
         private String URL = "http://222.255.29.210:9000/textplus.php?t={0}&e={1}";
         private String EMAIL = "";
@@ -409,7 +411,6 @@ namespace AutoRegFB
         {
             //
             ISDECAPTCHA = chkDecaptcha.Checked;
-            ISPLAYPK = chkPlayPK.Checked;
             //
             getListAccount();
             //
@@ -506,7 +507,9 @@ namespace AutoRegFB
             EMAIL = account.Email;
             if (mobile == String.Empty)
             {
-                mobile = getMobile(EMAIL);
+                Task<String> taskMobile = Task.Factory.StartNew(() => getMobile(EMAIL));
+                taskMobile.Wait();
+                mobile = taskMobile.Result;
             }
             PHONE = mobile;
             //
@@ -736,9 +739,10 @@ namespace AutoRegFB
                     return;
                 }
 
-                //ConfirmCode
+                //ConfirmCode, invalid
                 GeckoHtmlElement sendConfirmCode = getGeckoHtmlElementSendConfirmCode(document);
-                if (sendConfirmCode != null)
+                GeckoHtmlElement invalidElement = getGeckoHtmlElementInvalid(document);
+                if (sendConfirmCode != null || invalidElement != null)
                 {
                     String mobile = getReset(EMAIL);
                     PHONE = mobile;
@@ -747,9 +751,6 @@ namespace AutoRegFB
                     STEP = -1;
                     geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
                     return;
-                    //
-                    //sendConfirmCode.Click();
-                    //return;
                 }
 
                 //Submit
@@ -774,7 +775,10 @@ namespace AutoRegFB
                         }
                         else
                         {
-                            inputEx.SetAttribute("value", getCode(getMessage(EMAIL)[0]));
+                            Task<String> taskMessage = Task.Factory.StartNew(() => getCode(getMessage(EMAIL)[0]));
+                            taskMessage.Wait();
+                            String pinCode = taskMessage.Result;
+                            inputEx.SetAttribute("value", pinCode);
                         }
                         var submit = getGeckoHtmlElementSubmit(document);
                         submit.Click();
@@ -786,7 +790,10 @@ namespace AutoRegFB
                 GeckoHtmlElement pin = document.GetElementsByName("pin").FirstOrDefault();
                 if (pin != null)
                 {
-                    pin.SetAttribute("value", getCode(getMessage(EMAIL)[0]));
+                    Task<String> taskMessage = Task.Factory.StartNew(() => getCode(getMessage(EMAIL)[0]));
+                    taskMessage.Wait();
+                    String pinCode = taskMessage.Result;
+                    pin.SetAttribute("value", pinCode);
                     var submit = (GeckoInputElement)document.GetElementsByClassName("btn btnC").FirstOrDefault();
                     submit.Click();
                     return;
@@ -796,7 +803,10 @@ namespace AutoRegFB
                 GeckoHtmlElement code = getGeckoHtmlElementCode(document);
                 if (code != null)
                 {
-                    code.SetAttribute("value", getCode(getMessage(EMAIL)[0]));
+                    Task<String> taskMessage = Task.Factory.StartNew(() => getCode(getMessage(EMAIL)[0]));
+                    taskMessage.Wait();
+                    String pinCode = taskMessage.Result;
+                    code.SetAttribute("value", pinCode);
                     var submit = getGeckoHtmlElementSubmit(document);
                     submit.Click();
                     return;
@@ -877,7 +887,10 @@ namespace AutoRegFB
                     if (idCaptcha == "u_0_0" && classCaptcha == "_5whq input")
                     {
                         //Mã xác nhận
-                        captcha.SetAttribute("value", getCode(getMessage(EMAIL)[0]));
+                        Task<String> taskMessage = Task.Factory.StartNew(() => getCode(getMessage(EMAIL)[0]));
+                        taskMessage.Wait();
+                        String pinCode = taskMessage.Result;
+                        captcha.SetAttribute("value", pinCode);
                         var submitSubmit = (GeckoHtmlElement)document.GetElementsByName("submit[Submit]").FirstOrDefault();
                         if (submitSubmit != null)
                         {
@@ -953,8 +966,6 @@ namespace AutoRegFB
                         return;
                     }
                 }
-                //https://m.facebook.com/v2.2/dialog/apprequests?message=Come%20and%20play%20Pirate%20Kings!&to=AVmuRHI2VsbWjo_Om3zfLyRk-DlwL0Rwa8u9uu6FZO_Gqk882mRFIw7pajMt0D9fYu3qQxsA0pObklNAsEKcC9qKZrB48tv1RdCfibP3QWvRwQ&title=Come%20play%20Pirate%20Kings!&redirect_uri=fbconnect%3A%2F%2Fsuccess&frictionless=true&data=invite&display=touch&app_id=163291417175382&access_token=CAACUgz7qZAVYBAHZAZCQo4m6OZCb6ZC8jFVjm4i5CZByjonAJpP4c5ZA11fYQC9zkkYIMZA6rJBM2gYP7bGHd6ETjyZAvnUqwmnCNiuuXgvHLY2RcotMz2LamacOtXUSAQbJ1JcbnIL8oCJ2w8YnM5AnYgvjQZCq9uKWyf1EoOVOiCZBkpkbijG1gMMaAKvPGPBmO5dSGfZChrpM4hKXqwmspxSohTvI5NLGIyZCH79gykHh8CgZDZD
-                //Logout
                 var logout = getGeckoHtmlElementLogout(document);
                 if (logout != null)
                 {
@@ -986,7 +997,25 @@ namespace AutoRegFB
             }
 
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="document"></param>
+        /// <returns></returns>
+        private GeckoHtmlElement getGeckoHtmlElementInvalid(GeckoDocument document)
+        {
+            GeckoElementCollection nodes = document.GetElementsByTagName("span");
+            if (nodes == null) return null;
+            foreach (GeckoElement node in nodes)
+            {
+                String html = ((GeckoHtmlElement)node).InnerHtml;
+                if (html != null && (html.Contains("Không thể xác thực")))
+                {
+                    return (GeckoHtmlElement)node;
+                }
+            }
+            return null;
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -1152,6 +1181,38 @@ namespace AutoRegFB
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        private String getCaptchaCode(byte[] buffer)
+        {
+            int ret;
+
+            uint p_pict_to;
+            uint p_pict_type;
+            uint major_id;
+            uint minor_id;
+            uint port;
+            string host;
+            string name;
+            string passw;
+            string answer_captcha;
+
+            host = "api.decaptcher.com";
+            name = "hieupn";
+            passw = "abCd1234";
+            port = 36032;
+            p_pict_to = 0;
+            p_pict_type = 0;
+            major_id = 0;
+            minor_id = 0;
+
+            ret = DecaptcherLib.Decaptcher.RecognizePicture(host, port, name, passw, buffer, out p_pict_to, out p_pict_type, out answer_captcha, out major_id, out minor_id);
+            return answer_captcha;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="image"></param>
         /// <returns></returns>
         private String getCaptchaCode(String image)
@@ -1163,7 +1224,7 @@ namespace AutoRegFB
             uint major_id;
             uint minor_id;
             uint port;
-            uint load;
+            //uint load;
             string host;
             string name;
             string passw;
@@ -1178,7 +1239,7 @@ namespace AutoRegFB
             p_pict_type = 0;
             major_id = 0;
             minor_id = 0;
-            load = 0;
+            //load = 0;
 
             FileStream fs = new FileStream(image, FileMode.Open);
 
@@ -1190,7 +1251,7 @@ namespace AutoRegFB
             //ret = DecaptcherLib.Decaptcher.Balance(host, port, name, passw, out balance);
 
             //Get load system Decaptcher.
-            ret = DecaptcherLib.Decaptcher.SystemDecaptcherLoad(host, port, name, passw, out load);
+            //ret = DecaptcherLib.Decaptcher.SystemDecaptcherLoad(host, port, name, passw, out load);
 
             //Send captcha to Decaptcher
             ret = DecaptcherLib.Decaptcher.RecognizePicture(host, port, name, passw, buffer, out p_pict_to, out p_pict_type, out answer_captcha, out major_id, out minor_id);
@@ -1224,19 +1285,31 @@ namespace AutoRegFB
         private void timer_Tick(object sender, EventArgs e)
         {
             TIMER.Enabled = false;
+            GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+
             //ScreenCapturer.CaptureAndSave("a.png", CaptureMode.Window);
             ImageCreator imageCreator = new ImageCreator(geckoWebBrowser);
             //uint xOffset = new uint(
-            byte[] imageByteArray = imageCreator.CanvasGetPngImage(0, 45, 300, 70);
-            String pathCaptcha = String.Format("{0}\\{1}", Path.GetDirectoryName(Application.ExecutablePath), "lnt.png");
-            var fs = new BinaryWriter(new FileStream(pathCaptcha, FileMode.Create, FileAccess.Write));
-            fs.Write(imageByteArray);
-            fs.Close();
+
+            GeckoImageElement imgCaptcha = (GeckoImageElement) document.Images[1];
+
+            byte[] imageByteArray = imageCreator.CanvasGetPngImage((uint)imgCaptcha.OffsetLeft, (uint)imgCaptcha.OffsetTop, (uint)imgCaptcha.OffsetWidth, (uint)imgCaptcha.OffsetHeight);
+
+            //String pathCaptcha = String.Format("{0}\\{1}", Path.GetDirectoryName(Application.ExecutablePath), "lnt.png");
+            //var fs = new BinaryWriter(new FileStream(pathCaptcha, FileMode.Create, FileAccess.Write));
+            //fs.Write(imageByteArray);
+            //fs.Close();
             //
-            String strCaptcha = getCaptchaCode(pathCaptcha);
+
+            String msgTmp = lblMsg.Text;
+            lblMsg.Text = "[DECAPTCHA] Working...";
+            Task<String> taskCaptcha = Task.Factory.StartNew(() => getCaptchaCode(imageByteArray));
+            taskCaptcha.Wait();
+            String strCaptcha = taskCaptcha.Result;
+            lblMsg.Text = msgTmp;
+
             if (strCaptcha != String.Empty)
             {
-                GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
                 //captcha_response
                 GeckoHtmlElement captcha = (GeckoHtmlElement)document.GetElementsByName("captcha_response").FirstOrDefault();
                 captcha.SetAttribute("value", strCaptcha);
@@ -1349,12 +1422,11 @@ namespace AutoRegFB
                 //removeCookie();
                 //
                 if (ACCOUNTS == null || ACCOUNTS.Count == 0) return;
-                //Reset done
-                foreach (Acc acc in ACCOUNTS)
+                //
+                if (MessageBox.Show("Are you sure to continue...?", "AutoRegFB", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.No)
                 {
-                    acc.Done = false;
+                    return;
                 }
-                saveFileAcc();
                 //
                 if (geckoWebBrowser.Url.AbsoluteUri != URL_FACEBOOK)
                 {
@@ -1379,7 +1451,29 @@ namespace AutoRegFB
         private void chk_CheckedChanged(object sender, EventArgs e)
         {
             ISDECAPTCHA = chkDecaptcha.Checked;
-            ISPLAYPK = chkPlayPK.Checked;
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+                String html = document.Body.Parent.OuterHtml;
+                File.WriteAllText(FILENAME_FILE_HTML_SAVE, html);
+                //Open file
+                try
+                {
+                    Process.Start(FILENAME_FILE_HTML_SAVE);
+                }
+                catch
+                {
+
+                }
+            }
+            catch
+            {
+            
+            }
         }
     }
 }

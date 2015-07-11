@@ -36,7 +36,7 @@
             this.lblMsg = new System.Windows.Forms.Label();
             this.btnReset = new System.Windows.Forms.Button();
             this.chkDecaptcha = new System.Windows.Forms.CheckBox();
-            this.chkPlayPK = new System.Windows.Forms.CheckBox();
+            this.btnSave = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // geckoWebBrowser
@@ -60,7 +60,7 @@
             // 
             // btnLoginFB
             // 
-            this.btnLoginFB.Location = new System.Drawing.Point(575, 29);
+            this.btnLoginFB.Location = new System.Drawing.Point(575, 31);
             this.btnLoginFB.Name = "btnLoginFB";
             this.btnLoginFB.Size = new System.Drawing.Size(99, 23);
             this.btnLoginFB.TabIndex = 4;
@@ -70,7 +70,7 @@
             // 
             // btnResetAll
             // 
-            this.btnResetAll.Location = new System.Drawing.Point(575, 58);
+            this.btnResetAll.Location = new System.Drawing.Point(575, 412);
             this.btnResetAll.Name = "btnResetAll";
             this.btnResetAll.Size = new System.Drawing.Size(99, 23);
             this.btnResetAll.TabIndex = 6;
@@ -100,7 +100,7 @@
             // chkDecaptcha
             // 
             this.chkDecaptcha.AutoSize = true;
-            this.chkDecaptcha.Location = new System.Drawing.Point(458, 467);
+            this.chkDecaptcha.Location = new System.Drawing.Point(567, 467);
             this.chkDecaptcha.Name = "chkDecaptcha";
             this.chkDecaptcha.Size = new System.Drawing.Size(107, 17);
             this.chkDecaptcha.TabIndex = 9;
@@ -108,23 +108,22 @@
             this.chkDecaptcha.UseVisualStyleBackColor = true;
             this.chkDecaptcha.CheckedChanged += new System.EventHandler(this.chk_CheckedChanged);
             // 
-            // chkPlayPK
+            // btnSave
             // 
-            this.chkPlayPK.AutoSize = true;
-            this.chkPlayPK.Location = new System.Drawing.Point(570, 467);
-            this.chkPlayPK.Name = "chkPlayPK";
-            this.chkPlayPK.Size = new System.Drawing.Size(105, 17);
-            this.chkPlayPK.TabIndex = 10;
-            this.chkPlayPK.Text = "Play Pirate Kings";
-            this.chkPlayPK.UseVisualStyleBackColor = true;
-            this.chkPlayPK.CheckedChanged += new System.EventHandler(this.chk_CheckedChanged);
+            this.btnSave.Location = new System.Drawing.Point(575, 383);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(99, 23);
+            this.btnSave.TabIndex = 10;
+            this.btnSave.Text = "Save HTML";
+            this.btnSave.UseVisualStyleBackColor = true;
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(678, 486);
-            this.Controls.Add(this.chkPlayPK);
+            this.Controls.Add(this.btnSave);
             this.Controls.Add(this.chkDecaptcha);
             this.Controls.Add(this.btnReset);
             this.Controls.Add(this.lblMsg);
@@ -137,7 +136,7 @@
             this.MaximizeBox = false;
             this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Auto Reg Facebook";
+            this.Text = "Auto Reg Facebook - nhothuy48cb@gmail.com";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
             this.Load += new System.EventHandler(this.frmMain_Load);
             this.ResumeLayout(false);
@@ -154,7 +153,7 @@
         private System.Windows.Forms.Label lblMsg;
         private System.Windows.Forms.Button btnReset;
         private System.Windows.Forms.CheckBox chkDecaptcha;
-        private System.Windows.Forms.CheckBox chkPlayPK;
+        private System.Windows.Forms.Button btnSave;
     }
 }
 
