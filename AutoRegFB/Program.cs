@@ -20,6 +20,13 @@ namespace AutoRegFB
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            //
+            Xpcom.Initialize(String.Format("{0}\\xulrunner\\", Path.GetDirectoryName(Application.ExecutablePath)));
+            nsICookieManager CookieMan;
+            CookieMan = Xpcom.GetService<nsICookieManager>("@mozilla.org/cookiemanager;1");
+            CookieMan = Xpcom.QueryInterface<nsICookieManager>(CookieMan);
+            CookieMan.RemoveAll();
+            //
             Application.Run(new frmMain());
         }
     }

@@ -65,12 +65,6 @@ namespace AutoRegFB
         {
             InitializeComponent();
             //
-            Xpcom.Initialize(String.Format("{0}\\xulrunner\\", Path.GetDirectoryName(Application.ExecutablePath)));
-            nsICookieManager CookieMan;
-            CookieMan = Xpcom.GetService<nsICookieManager>("@mozilla.org/cookiemanager;1");
-            CookieMan = Xpcom.QueryInterface<nsICookieManager>(CookieMan);
-            CookieMan.RemoveAll(); 
-            //
             M_RESET = new BackgroundWorker();
             M_RESET.DoWork += new DoWorkEventHandler(m_Reset_DoWork);
             M_RESET.ProgressChanged += new ProgressChangedEventHandler(m_Reset_ProgressChanged);
