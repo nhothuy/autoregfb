@@ -22,8 +22,14 @@ using System.Windows.Forms;
 
 namespace AutoRegFB
 {
+    /// <summary>
+    /// AutoRegFB
+    /// Author: nhothuy48cb@gmail.com
+    /// FB: https://facebook.com/nhothuy
+    /// </summary>
     public partial class frmMain : Form
     {
+        #region "PARAMS"
         int STEP = 1;
         System.Windows.Forms.Timer TIMER = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer TIMER_REG = new System.Windows.Forms.Timer();
@@ -47,7 +53,10 @@ namespace AutoRegFB
         private String URL_REG_FACEBOOK = "https://m.facebook.com/r.php";
         private String URL_FACEBOOK = "https://m.facebook.com";
         private String PASS = "admin123";
+        private String URL_ACCEPT_PK = "https://www.facebook.com/v2.2/dialog/oauth?app_id=163291417175382&client_id=163291417175382&display=popup&domain=cashkinggame.com&e2e=%7B%7D&locale=en_US&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FxRlIuTsSMoE.js%3Fversion%3D41%23cb%3Df3e4d2188dbe56c%26domain%3Dcashkinggame.com%26origin%3Dhttps%253A%252F%252Fcashkinggame.com%252Ff182e13444e3852%26relation%3Dopener%26frame%3Df233935ddfb058&response_type=token%2Csigned_request&scope=user_friends%2Cemail%2Cpublish_actions%2Cpublic_profile&sdk=joey&version=v2.2";
+        #endregion
 
+        #region "EVENTS ON FORM"
         /// <summary>
         /// 
         /// </summary>
@@ -62,6 +71,59 @@ namespace AutoRegFB
             M_RESET.RunWorkerCompleted += new RunWorkerCompletedEventHandler(m_Reset_RunWorkerCompleted);
             M_RESET.WorkerReportsProgress = true;
             M_RESET.WorkerSupportsCancellation = true;
+        }
+
+        private void frmMain_Load(object sender, EventArgs e)
+        {
+            //
+            ISDECAPTCHA = chkDecaptcha.Checked;
+            //
+            getListAccount();
+            //
+            geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
+            //
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            geckoWebBrowser.Dispose();
+        }
+        #endregion
+
+        #region "METHODS"
+        /// <summary>
+        /// 
+        /// </summary>
+        private void fillLoginFB()
+        {
+            //
+            var account = (from acc in ACCOUNTS
+                           where acc.Done == false
+                           select acc).FirstOrDefault();
+            if (account == null)
+            {
+                lblMsg.Text = "All account invited.";
+                return;
+            }
+            EMAIL = account.Email;
+            PHONE = account.Phone;
+            lblMsg.Text = String.Format("[LOGIN] Email: {0} Phone {1}", EMAIL, PHONE);
+            GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+            GeckoHtmlElement email = document.GetElementsByName("email").FirstOrDefault();
+            email.SetAttribute("value", account.Phone);
+
+            GeckoHtmlElement pass = document.GetElementsByName("pass").FirstOrDefault();
+            pass.SetAttribute("value", PASS);
+
+            //login
+            var login = (GeckoInputElement)document.GetElementsByName("login").FirstOrDefault(); ;
+
+            login.Click();
         }
         /// <summary>
         /// 
@@ -86,74 +148,6 @@ namespace AutoRegFB
             dicResult.Add("AccessToken", accessToken);
             return JsonConvert.SerializeObject(dicResult);
         }
-
-        #region "M_PLAY"
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void m_Reset_DoWork(object sender, DoWorkEventArgs e)
-        {
-            //fbids
-            saveFileFbids();
-            //ACCOUNTS
-            foreach (Acc acc in ACCOUNTS)
-            {
-                String mobile = getReset(acc.Email);
-                resetMobile(acc.Email, mobile);
-                String msg = String.Format("[RESET] Email: {0} Phone: {1}", acc.Email, mobile);
-                M_RESET.ReportProgress(50, msg);
-                if (M_RESET.CancellationPending)
-                {
-                    e.Cancel = true;
-                    M_RESET.ReportProgress(0);
-                    return;
-                }
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void m_Reset_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            try
-            {
-                String msg = e.UserState.ToString();
-                lblMsg.Text = msg;
-            }
-            catch
-            {
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void m_Reset_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            if (e.Cancelled)
-            {
-                //MessageBox.Show("Cancelled.", "AutoRegFB", MessageBoxButtons.OK);
-                btnResetAll.Text = "Reset";
-                return;
-            }
-            // Check to see if an error occurred in the background process.
-            else if (e.Error != null)
-            {
-                MessageBox.Show("Error.", "AutoRegFB", MessageBoxButtons.OK);
-            }
-            else
-            {
-                MessageBox.Show("Reset all done.", "AutoRegFB", MessageBoxButtons.OK);
-                btnResetAll.Text = "Reset";
-            }
-        }
-        #endregion
-
         /// <summary>
         /// 
         /// </summary>
@@ -401,22 +395,13 @@ namespace AutoRegFB
                 {
                     File.AppendAllText(FILENAME_FBIDS_OUT, String.Format(",{0}", fbid));
                 }
-                
+
             }
             catch
             {
             }
         }
-        private void frmMain_Load(object sender, EventArgs e)
-        {
-            //
-            ISDECAPTCHA = chkDecaptcha.Checked;
-            //
-            getListAccount();
-            //
-            geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
-            //
-        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -523,7 +508,7 @@ namespace AutoRegFB
             Int32 intGender = rand.Next(1, 2);
             //
             Gender eGender = Gender.Male;
-            switch(intGender)
+            switch (intGender)
             {
                 case 1:
                     eGender = Gender.Female;
@@ -540,7 +525,7 @@ namespace AutoRegFB
 
             GeckoHtmlElement lastName = document.GetElementsByName("lastname").FirstOrDefault();
             lastName.SetAttribute("value", NameGenerator.GenerateLastName());
-            
+
             GeckoHtmlElement email = document.GetElementsByName("email").FirstOrDefault();
             email.SetAttribute("value", PHONE);
 
@@ -584,24 +569,7 @@ namespace AutoRegFB
                 return String.Empty;
             }
         }
-        private void btnRegFB_Click(object sender, EventArgs e)
-        {
-            //removeCookie();
-            //
-            if (geckoWebBrowser.Url.AbsoluteUri != URL_REG_FACEBOOK)
-            {
-                geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
-                TIMER_REG.Interval = 2000;
-                TIMER_REG.Enabled = true;
-                TIMER_REG.Tick += new System.EventHandler(this.timer_Reg_Tick);
-            }
-            else
-            {
-                TYPE = 1;
-                STEP = 1;
-                fillInfoFB();
-            }
-        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -659,11 +627,207 @@ namespace AutoRegFB
             GeckoPreferences.Default["network.proxy.ssl"] = proxy.Host;
             GeckoPreferences.Default["network.proxy.ssl_port"] = Convert.ToInt32(proxy.Port);
         }
-            /// <summary>
+        #endregion
+
+        #region "M_PLAY"
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
+        void m_Reset_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //fbids
+            saveFileFbids();
+            //ACCOUNTS
+            foreach (Acc acc in ACCOUNTS)
+            {
+                String mobile = getReset(acc.Email);
+                resetMobile(acc.Email, mobile);
+                String msg = String.Format("[RESET] Email: {0} Phone: {1}", acc.Email, mobile);
+                M_RESET.ReportProgress(50, msg);
+                if (M_RESET.CancellationPending)
+                {
+                    e.Cancel = true;
+                    M_RESET.ReportProgress(0);
+                    return;
+                }
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_Reset_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            try
+            {
+                String msg = e.UserState.ToString();
+                lblMsg.Text = msg;
+            }
+            catch
+            {
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_Reset_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+                btnResetAll.Text = "Reset";
+                return;
+            }
+            // Check to see if an error occurred in the background process.
+            else if (e.Error != null)
+            {
+                MessageBox.Show("Error.", "AutoRegFB", MessageBoxButtons.OK);
+            }
+            else
+            {
+                MessageBox.Show("Reset all done.", "AutoRegFB", MessageBoxButtons.OK);
+                btnResetAll.Text = "Reset";
+            }
+        }
+        #endregion
+
+        #region "EVENTS OF CONTROLS"
+        private void btnLoginFB_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (ACCOUNTS == null || ACCOUNTS.Count == 0) return;
+                if (MessageBox.Show("Are you sure to continue?", "AutoRegFB", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.No)
+                {
+                    return;
+                }
+                if (geckoWebBrowser.Url.AbsoluteUri != URL_FACEBOOK)
+                {
+                    geckoWebBrowser.Navigate(URL_FACEBOOK);
+                    TIMER_PLAY.Interval = 2000;
+                    TIMER_PLAY.Enabled = true;
+                    TIMER_PLAY.Tick += new System.EventHandler(this.timer_Play_Tick);
+                }
+                else
+                {
+                    TYPE = 2;
+                    STEP = 1;
+                    fillLoginFB();
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void chk_CheckedChanged(object sender, EventArgs e)
+        {
+            ISDECAPTCHA = chkDecaptcha.Checked;
+        }
+
+        private void btnOpenFBIDS_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start(FILENAME_FBIDS_OUT);
+            }
+            catch
+            {
+
+            }
+
+        }
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+                String html = document.Body.Parent.OuterHtml;
+                File.WriteAllText(FILENAME_FILE_HTML_SAVE, html);
+                try
+                {
+                    Process.Start(FILENAME_FILE_HTML_SAVE);
+                }
+                catch
+                {
+
+                }
+            }
+            catch
+            {
+
+            }
+        }
+        private void btnRegFB_Click(object sender, EventArgs e)
+        {
+            if (geckoWebBrowser.Url.AbsoluteUri != URL_REG_FACEBOOK)
+            {
+                geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
+                TIMER_REG.Interval = 2000;
+                TIMER_REG.Enabled = true;
+                TIMER_REG.Tick += new System.EventHandler(this.timer_Reg_Tick);
+            }
+            else
+            {
+                TYPE = 1;
+                STEP = 1;
+                fillInfoFB();
+            }
+        }
+        private void btnResetAll_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                String txtBtn = btnResetAll.Text;
+                switch (txtBtn.ToUpper())
+                {
+                    case "RESET":
+                        btnResetAll.Text = "Cancel";
+                        M_RESET.RunWorkerAsync();
+                        break;
+                    case "CANCEL":
+                        M_RESET.CancelAsync();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (EMAIL == String.Empty) return;
+                nsICookieManager CookieMan;
+                CookieMan = Xpcom.GetService<nsICookieManager>("@mozilla.org/cookiemanager;1");
+                CookieMan = Xpcom.QueryInterface<nsICookieManager>(CookieMan);
+                CookieMan.RemoveAll();
+                //
+                STEP = 1;
+                geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
+                //
+                String mobile = getReset(EMAIL);
+                updateMobile(EMAIL, mobile);
+                MessageBox.Show(String.Format("Email: {0} Phone: {1}", EMAIL, mobile), "AtutoRegFB", MessageBoxButtons.OK);
+            }
+            catch
+            {
+
+            }
+        }
+        #endregion
+
+        #region "EVENTS OF GECKOFX"
         private void geckoWebBrowser_DocumentCompleted(object sender, Gecko.Events.GeckoDocumentCompletedEventArgs e)
         {
             if (TYPE == 1)
@@ -975,7 +1139,7 @@ namespace AutoRegFB
                         if (STEP == 1)
                         {
                             STEP = 2;
-                            geckoWebBrowser.Navigate("https://www.facebook.com/v2.2/dialog/oauth?app_id=163291417175382&client_id=163291417175382&display=popup&domain=cashkinggame.com&e2e=%7B%7D&locale=en_US&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FxRlIuTsSMoE.js%3Fversion%3D41%23cb%3Df3e4d2188dbe56c%26domain%3Dcashkinggame.com%26origin%3Dhttps%253A%252F%252Fcashkinggame.com%252Ff182e13444e3852%26relation%3Dopener%26frame%3Df233935ddfb058&response_type=token%2Csigned_request&scope=user_friends%2Cemail%2Cpublish_actions%2Cpublic_profile&sdk=joey&version=v2.2");
+                            geckoWebBrowser.Navigate(URL_ACCEPT_PK);
                             return;
                         }
                         else if (STEP == 3)
@@ -997,6 +1161,9 @@ namespace AutoRegFB
             }
 
         }
+        #endregion
+
+        #region "GECKOHTMLELEMENT"
         /// <summary>
         /// 
         /// </summary>
@@ -1009,7 +1176,7 @@ namespace AutoRegFB
             foreach (GeckoElement node in nodes)
             {
                 String html = ((GeckoHtmlElement)node).InnerHtml;
-                if (html != null && (html.Contains("Không thể xác thực")))
+                if (html != null && (html.Contains("Không thể xác thực") || html.Contains("already in use by a registered account") || html.Contains("Could not validate your mobile number")))
                 {
                     return (GeckoHtmlElement)node;
                 }
@@ -1178,6 +1345,9 @@ namespace AutoRegFB
             }
             return null;
         }
+        #endregion
+
+        #region "DECAPTCHA"
         /// <summary>
         /// 
         /// </summary>
@@ -1259,7 +1429,9 @@ namespace AutoRegFB
             //
             return answer_captcha;
         }
+        #endregion
 
+        #region "TIMER"
         private void timer_Reg_Tick(object sender, EventArgs e)
         {
             TIMER_REG.Enabled = false;
@@ -1271,7 +1443,7 @@ namespace AutoRegFB
         private void timer_Accept_Tick(object sender, EventArgs e)
         {
             TIMER_ACCEPT.Enabled = false;
-            geckoWebBrowser.Navigate("https://www.facebook.com/v2.2/dialog/oauth?app_id=163291417175382&client_id=163291417175382&display=popup&domain=cashkinggame.com&e2e=%7B%7D&locale=en_US&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FxRlIuTsSMoE.js%3Fversion%3D41%23cb%3Df3e4d2188dbe56c%26domain%3Dcashkinggame.com%26origin%3Dhttps%253A%252F%252Fcashkinggame.com%252Ff182e13444e3852%26relation%3Dopener%26frame%3Df233935ddfb058&response_type=token%2Csigned_request&scope=user_friends%2Cemail%2Cpublish_actions%2Cpublic_profile&sdk=joey&version=v2.2");
+            geckoWebBrowser.Navigate(URL_ACCEPT_PK);
         }
 
         private void timer_Play_Tick(object sender, EventArgs e)
@@ -1286,21 +1458,9 @@ namespace AutoRegFB
         {
             TIMER.Enabled = false;
             GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
-
-            //ScreenCapturer.CaptureAndSave("a.png", CaptureMode.Window);
             ImageCreator imageCreator = new ImageCreator(geckoWebBrowser);
-            //uint xOffset = new uint(
-
             GeckoImageElement imgCaptcha = (GeckoImageElement) document.Images[1];
-
             byte[] imageByteArray = imageCreator.CanvasGetPngImage((uint)imgCaptcha.OffsetLeft, (uint)imgCaptcha.OffsetTop, (uint)imgCaptcha.OffsetWidth, (uint)imgCaptcha.OffsetHeight);
-
-            //String pathCaptcha = String.Format("{0}\\{1}", Path.GetDirectoryName(Application.ExecutablePath), "lnt.png");
-            //var fs = new BinaryWriter(new FileStream(pathCaptcha, FileMode.Create, FileAccess.Write));
-            //fs.Write(imageByteArray);
-            //fs.Close();
-            //
-
             String msgTmp = lblMsg.Text;
             lblMsg.Text = "[DECAPTCHA] Working...";
             Task<String> taskCaptcha = Task.Factory.StartNew(() => getCaptchaCode(imageByteArray));
@@ -1327,153 +1487,8 @@ namespace AutoRegFB
                 MessageBox.Show("Error get captcha!", "AutoRegFB", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            geckoWebBrowser.Dispose();
-        }
+        #endregion
 
-        private void btnResetAll_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                String txtBtn = btnResetAll.Text;
-                switch (txtBtn.ToUpper())
-                {
-                    case "RESET":
-                        btnResetAll.Text = "Cancel";
-                        M_RESET.RunWorkerAsync();
-                        break;
-                    case "CANCEL":
-                        M_RESET.CancelAsync();
-                        break;
-                    default:
-                        break;
-                }
-            }
-            catch
-            {
-
-            }
-        }
-
-        private void btnReset_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                //removeCookie();
-                if (EMAIL == String.Empty) return;
-                nsICookieManager CookieMan;
-                CookieMan = Xpcom.GetService<nsICookieManager>("@mozilla.org/cookiemanager;1");
-                CookieMan = Xpcom.QueryInterface<nsICookieManager>(CookieMan);
-                CookieMan.RemoveAll();
-                //
-                STEP = 1;
-                geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
-                //
-                String mobile = getReset(EMAIL);
-                updateMobile(EMAIL, mobile);
-                MessageBox.Show(String.Format("Email: {0} Phone: {1}", EMAIL, mobile), "AtutoRegFB", MessageBoxButtons.OK);
-            }
-            catch
-            {
-
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void fillLoginFB()
-        {
-            //
-            var account = (from acc in ACCOUNTS
-                           where acc.Done == false
-                           select acc).FirstOrDefault();
-            if (account == null)
-            {
-                lblMsg.Text = "All account invited.";
-                return;
-            }
-            EMAIL = account.Email;
-            PHONE = account.Phone;
-            lblMsg.Text = String.Format("[LOGIN] Email: {0} Phone {1}", EMAIL, PHONE);
-            GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
-            GeckoHtmlElement email = document.GetElementsByName("email").FirstOrDefault();
-            email.SetAttribute("value", account.Phone);
-
-            GeckoHtmlElement pass = document.GetElementsByName("pass").FirstOrDefault();
-            pass.SetAttribute("value", PASS);
-
-            //login
-            var login = (GeckoInputElement)document.GetElementsByName("login").FirstOrDefault(); ;
-
-            login.Click();
-        }
-
-        private void btnLoginFB_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                //removeCookie();
-                //
-                if (ACCOUNTS == null || ACCOUNTS.Count == 0) return;
-                //
-                if (MessageBox.Show("Are you sure to continue...?", "AutoRegFB", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.No)
-                {
-                    return;
-                }
-                //
-                if (geckoWebBrowser.Url.AbsoluteUri != URL_FACEBOOK)
-                {
-                    geckoWebBrowser.Navigate(URL_FACEBOOK);
-                    TIMER_PLAY.Interval = 2000;
-                    TIMER_PLAY.Enabled = true;
-                    TIMER_PLAY.Tick += new System.EventHandler(this.timer_Play_Tick);
-                }
-                else
-                {
-                    TYPE = 2;
-                    STEP = 1;
-                    fillLoginFB();
-                }
-            }
-            catch
-            {
-
-            }
-        }
-
-        private void chk_CheckedChanged(object sender, EventArgs e)
-        {
-            ISDECAPTCHA = chkDecaptcha.Checked;
-        }
-
-        private void btnSave_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
-                String html = document.Body.Parent.OuterHtml;
-                File.WriteAllText(FILENAME_FILE_HTML_SAVE, html);
-                //Open file
-                try
-                {
-                    Process.Start(FILENAME_FILE_HTML_SAVE);
-                }
-                catch
-                {
-
-                }
-            }
-            catch
-            {
-            
-            }
-        }
+        
     }
 }
