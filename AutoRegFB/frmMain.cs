@@ -40,13 +40,14 @@ namespace AutoRegFB
         private String FILENAME_FBIDS_OUT = String.Format("{0}\\fbids.txt", Path.GetDirectoryName(Application.ExecutablePath));
         private String FILENAME_FILE_HTML_SAVE = String.Format("{0}\\tmp.html", Path.GetDirectoryName(Application.ExecutablePath));
         private List<Acc> ACCOUNTS = new List<Acc>();
-        private String URL = "http://222.255.29.210:9000/textplus.php?t={0}&e={1}";
+        private String URL = "http://222.255.29.210:9000/lnt.php?t={0}&e={1}";
         private String EMAIL = "";
         private String PHONE = "";
         private bool ISDECAPTCHA = false;
         private bool ISPLAYPK = true;
         private int TYPE = 1;
         private BackgroundWorker M_RESET;
+        private BackgroundWorker M_HIDE;
         private const String URLLOGIN = "http://prod.cashkinggame.com/CKService.svc/v3.0/login/?{0}";
         private String UDID = "108a61cda531152f01e5436ba1a5b4fcf0acc23f";
         private String BUSINESSTOKEN = "AbxjJpmqjUPNvh78";
@@ -64,13 +65,19 @@ namespace AutoRegFB
         {
             InitializeComponent();
             //
-            //
             M_RESET = new BackgroundWorker();
             M_RESET.DoWork += new DoWorkEventHandler(m_Reset_DoWork);
             M_RESET.ProgressChanged += new ProgressChangedEventHandler(m_Reset_ProgressChanged);
             M_RESET.RunWorkerCompleted += new RunWorkerCompletedEventHandler(m_Reset_RunWorkerCompleted);
             M_RESET.WorkerReportsProgress = true;
             M_RESET.WorkerSupportsCancellation = true;
+            //
+            M_HIDE = new BackgroundWorker();
+            M_HIDE.DoWork += new DoWorkEventHandler(m_Hide_DoWork);
+            M_HIDE.ProgressChanged += new ProgressChangedEventHandler(m_Hide_ProgressChanged);
+            M_HIDE.RunWorkerCompleted += new RunWorkerCompletedEventHandler(m_Hide_RunWorkerCompleted);
+            M_HIDE.WorkerReportsProgress = true;
+            M_HIDE.WorkerSupportsCancellation = true;
         }
 
         private void frmMain_Load(object sender, EventArgs e)
@@ -218,6 +225,21 @@ namespace AutoRegFB
                 }
             }
             saveFileAcc();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="email"></param>
+        private void hideChatGroup(String email)
+        {
+            try
+            {
+                String url = String.Format(URL, "5", email);
+                String ret = doGet(url);
+            }
+            catch
+            {
+            }
         }
         /// <summary>
         /// 
@@ -695,6 +717,68 @@ namespace AutoRegFB
         }
         #endregion
 
+        #region "M_HIDE"
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_Hide_DoWork(object sender, DoWorkEventArgs e)
+        {
+            foreach (Acc acc in ACCOUNTS)
+            {
+                String msg = String.Format("[HIDECHATGROUP] Email: {0}", acc.Email);
+                hideChatGroup(acc.Email);
+                M_RESET.ReportProgress(50, msg);
+                if (M_RESET.CancellationPending)
+                {
+                    e.Cancel = true;
+                    M_RESET.ReportProgress(0);
+                    return;
+                }
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_Hide_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            try
+            {
+                String msg = e.UserState.ToString();
+                lblMsg.Text = msg;
+            }
+            catch
+            {
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_Hide_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+                btnCleanMsg.Text = "Clean Message";
+                return;
+            }
+            // Check to see if an error occurred in the background process.
+            else if (e.Error != null)
+            {
+                MessageBox.Show("Error.", "AutoRegFB", MessageBoxButtons.OK);
+            }
+            else
+            {
+                MessageBox.Show("Hide chat group all done.", "AutoRegFB", MessageBoxButtons.OK);
+                btnCleanMsg.Text = "Clean Message";
+            }
+        }
+        #endregion
+
         #region "EVENTS OF CONTROLS"
         private void btnLoginFB_Click(object sender, EventArgs e)
         {
@@ -819,6 +903,30 @@ namespace AutoRegFB
                 String mobile = getReset(EMAIL);
                 updateMobile(EMAIL, mobile);
                 MessageBox.Show(String.Format("Email: {0} Phone: {1}", EMAIL, mobile), "AtutoRegFB", MessageBoxButtons.OK);
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void btnCleanMsg_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                String txtBtn = btnCleanMsg.Text;
+                switch (txtBtn.ToUpper())
+                {
+                    case "CLEAN MESSAGE":
+                        btnCleanMsg.Text = "Cancel";
+                        M_HIDE.RunWorkerAsync();
+                        break;
+                    case "CANCEL":
+                        M_HIDE.CancelAsync();
+                        break;
+                    default:
+                        break;
+                }
             }
             catch
             {
@@ -1488,6 +1596,8 @@ namespace AutoRegFB
             }
         }
         #endregion
+
+       
 
         
     }

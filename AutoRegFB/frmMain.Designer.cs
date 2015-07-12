@@ -38,6 +38,7 @@
             this.chkDecaptcha = new System.Windows.Forms.CheckBox();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnOpenFBIDS = new System.Windows.Forms.Button();
+            this.btnCleanMsg = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // geckoWebBrowser
@@ -71,7 +72,7 @@
             // 
             // btnResetAll
             // 
-            this.btnResetAll.Location = new System.Drawing.Point(575, 412);
+            this.btnResetAll.Location = new System.Drawing.Point(575, 408);
             this.btnResetAll.Name = "btnResetAll";
             this.btnResetAll.Size = new System.Drawing.Size(99, 23);
             this.btnResetAll.TabIndex = 6;
@@ -90,7 +91,7 @@
             // 
             // btnReset
             // 
-            this.btnReset.Location = new System.Drawing.Point(575, 438);
+            this.btnReset.Location = new System.Drawing.Point(575, 437);
             this.btnReset.Name = "btnReset";
             this.btnReset.Size = new System.Drawing.Size(99, 23);
             this.btnReset.TabIndex = 8;
@@ -111,7 +112,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(575, 383);
+            this.btnSave.Location = new System.Drawing.Point(575, 350);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(99, 23);
             this.btnSave.TabIndex = 10;
@@ -121,7 +122,7 @@
             // 
             // btnOpenFBIDS
             // 
-            this.btnOpenFBIDS.Location = new System.Drawing.Point(575, 354);
+            this.btnOpenFBIDS.Location = new System.Drawing.Point(575, 321);
             this.btnOpenFBIDS.Name = "btnOpenFBIDS";
             this.btnOpenFBIDS.Size = new System.Drawing.Size(99, 23);
             this.btnOpenFBIDS.TabIndex = 11;
@@ -129,11 +130,22 @@
             this.btnOpenFBIDS.UseVisualStyleBackColor = true;
             this.btnOpenFBIDS.Click += new System.EventHandler(this.btnOpenFBIDS_Click);
             // 
+            // btnCleanMsg
+            // 
+            this.btnCleanMsg.Location = new System.Drawing.Point(575, 379);
+            this.btnCleanMsg.Name = "btnCleanMsg";
+            this.btnCleanMsg.Size = new System.Drawing.Size(99, 23);
+            this.btnCleanMsg.TabIndex = 12;
+            this.btnCleanMsg.Text = "Clean Message";
+            this.btnCleanMsg.UseVisualStyleBackColor = true;
+            this.btnCleanMsg.Click += new System.EventHandler(this.btnCleanMsg_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(678, 486);
+            this.Controls.Add(this.btnCleanMsg);
             this.Controls.Add(this.btnOpenFBIDS);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.chkDecaptcha);
@@ -167,6 +179,7 @@
         private System.Windows.Forms.CheckBox chkDecaptcha;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnOpenFBIDS;
+        private System.Windows.Forms.Button btnCleanMsg;
     }
 }
 
