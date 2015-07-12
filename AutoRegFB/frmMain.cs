@@ -1475,9 +1475,9 @@ namespace AutoRegFB
             string passw;
             string answer_captcha;
 
-            host = "api.decaptcher.com";
-            name = "hieupn";
-            passw = "abCd1234";
+            host = "xxxx.com";
+            name = "xxxxx";
+            passw = "xxxxxx";
             port = 36032;
             p_pict_to = 0;
             p_pict_type = 0;
@@ -1509,9 +1509,9 @@ namespace AutoRegFB
             string answer_captcha;
             //double balance;
 
-            host = "api.decaptcher.com";
-            name = "hieupn";
-            passw = "abCd1234";
+            host = "xxxx.com";
+            name = "xxxxx";
+            passw = "xxxxx";
             port = 36032;
             p_pict_to = 0;
             p_pict_type = 0;
