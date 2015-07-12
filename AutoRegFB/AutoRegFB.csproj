@@ -134,6 +134,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Libs\Geckofx-Core.dll.config" />
+    <None Include="lnt.php" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -150,7 +151,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app.ico" />
-    <Content Include="icon175x175.ico" />
     <Content Include="Libs\DecaptcherLib.dll" />
     <Content Include="Libs\Geckofx-Core.dll" />
     <Content Include="Libs\Geckofx-Winforms.dll" />
