@@ -91,11 +91,11 @@
     <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DecaptcherLib, Version=1.0.4194.40583, Culture=neutral, processorArchitecture=AMD64">
+    <Reference Include="DecaptcherLib, Version=1.0.4194.40583, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Libs\DecaptcherLib.dll</HintPath>
     </Reference>
-    <Reference Include="Geckofx-Core, Version=33.0.5.0, Culture=neutral, PublicKeyToken=3209ac31600d1857, processorArchitecture=x86">
+    <Reference Include="Geckofx-Core, Version=33.0.5.0, Culture=neutral, PublicKeyToken=3209ac31600d1857, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Libs\Geckofx-Core.dll</HintPath>
     </Reference>
