@@ -985,6 +985,44 @@ namespace AutoRegFB
         #endregion
 
         #region "EVENTS OF CONTROLS"
+        private void btnRefresh_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                geckoWebBrowser.Refresh();
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void btnGetPinCode_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+                var input = getGeckoHtmlElementInput(document);
+                var submit = getGeckoHtmlElementSubmit(document);
+                try
+                {
+                    M_GETCODE.CancelAsync();
+                }
+                catch
+                { 
+                
+                }
+                Dictionary<string, object> dic = new Dictionary<string, object>();
+                dic.Add("input", input);
+                dic.Add("submit", submit);
+                M_GETCODE.RunWorkerAsync(dic);
+
+            }
+            catch
+            { 
+            
+            }
+        }
         private void btnLoginFB_Click(object sender, EventArgs e)
         {
             try
@@ -1489,15 +1527,31 @@ namespace AutoRegFB
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show(ex.Message);
-                throw ex;
+                geckoWebBrowser.Refresh();
             }
         }
         #endregion
 
         #region "GECKOHTMLELEMENT"
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="document"></param>
+        /// <returns></returns>
+        private GeckoHtmlElement getGeckoHtmlElementInput(GeckoDocument document)
+        {
+            GeckoElementCollection nodes = document.GetElementsByTagName("input");
+            if (nodes == null) return null;
+            foreach (GeckoElement node in nodes)
+            {
+                String type = node.GetAttribute("type");
+                if (type != "hidden") return (GeckoHtmlElement) node;
+            }
+            return null;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -1788,5 +1842,9 @@ namespace AutoRegFB
             fillLoginFB();
         }
         #endregion
+
+        
+
+        
     }
 }
