@@ -31,7 +31,6 @@ namespace AutoRegFB
     {
         #region "PARAMS"
         int STEP = 1;
-        System.Windows.Forms.Timer TIMER = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer TIMER_REG = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer TIMER_PLAY = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer TIMER_ACCEPT = new System.Windows.Forms.Timer();
@@ -48,6 +47,8 @@ namespace AutoRegFB
         private int TYPE = 1;
         private BackgroundWorker M_RESET;
         private BackgroundWorker M_HIDE;
+        private BackgroundWorker M_GETCODE;
+        private BackgroundWorker M_CAPTCHA;
         private const String URLLOGIN = "http://prod.cashkinggame.com/CKService.svc/v3.0/login/?{0}";
         private String UDID = "108a61cda531152f01e5436ba1a5b4fcf0acc23f";
         private String BUSINESSTOKEN = "AbxjJpmqjUPNvh78";
@@ -78,6 +79,20 @@ namespace AutoRegFB
             M_HIDE.RunWorkerCompleted += new RunWorkerCompletedEventHandler(m_Hide_RunWorkerCompleted);
             M_HIDE.WorkerReportsProgress = true;
             M_HIDE.WorkerSupportsCancellation = true;
+            //
+            M_GETCODE = new BackgroundWorker();
+            M_GETCODE.DoWork += new DoWorkEventHandler(m_GetCode_DoWork);
+            M_GETCODE.ProgressChanged += new ProgressChangedEventHandler(m_GetCode_ProgressChanged);
+            M_GETCODE.RunWorkerCompleted += new RunWorkerCompletedEventHandler(m_GetCode_RunWorkerCompleted);
+            M_GETCODE.WorkerReportsProgress = true;
+            M_GETCODE.WorkerSupportsCancellation = true;
+            //
+            M_CAPTCHA = new BackgroundWorker();
+            M_CAPTCHA.DoWork += new DoWorkEventHandler(m_Captcha_DoWork);
+            M_CAPTCHA.ProgressChanged += new ProgressChangedEventHandler(m_Captcha_ProgressChanged);
+            M_CAPTCHA.RunWorkerCompleted += new RunWorkerCompletedEventHandler(m_Captcha_RunWorkerCompleted);
+            M_CAPTCHA.WorkerReportsProgress = true;
+            M_CAPTCHA.WorkerSupportsCancellation = true;
         }
 
         private void frmMain_Load(object sender, EventArgs e)
@@ -433,6 +448,14 @@ namespace AutoRegFB
             {
                 String content = MyFile.ReadFile(FILENAME_FBIDS);
                 ACCOUNTS = JsonConvert.DeserializeObject<List<Acc>>(content);
+                var account = (from acc in ACCOUNTS
+                               where acc.Used == false
+                               select acc).FirstOrDefault();
+                if (account != null)
+                {
+                    EMAIL = ACCOUNTS[0].Email;
+                    PHONE = ACCOUNTS[0].Phone;
+                }
             }
             catch
             {
@@ -651,7 +674,7 @@ namespace AutoRegFB
         }
         #endregion
 
-        #region "M_PLAY"
+        #region "M_RESET"
         /// <summary>
         /// 
         /// </summary>
@@ -659,22 +682,42 @@ namespace AutoRegFB
         /// <param name="e"></param>
         void m_Reset_DoWork(object sender, DoWorkEventArgs e)
         {
-            //fbids
-            saveFileFbids();
-            //ACCOUNTS
-            foreach (Acc acc in ACCOUNTS)
+            int type = (int) e.Argument;
+            if (type == 1)
             {
-                String mobile = getReset(acc.Email);
-                resetMobile(acc.Email, mobile);
-                String msg = String.Format("[RESET] Email: {0} Phone: {1}", acc.Email, mobile);
-                M_RESET.ReportProgress(50, msg);
-                if (M_RESET.CancellationPending)
+                //fbids
+                saveFileFbids();
+                //ACCOUNTS
+                foreach (Acc acc in ACCOUNTS)
                 {
-                    e.Cancel = true;
-                    M_RESET.ReportProgress(0);
-                    return;
+                    String mobile = getReset(acc.Email);
+                    resetMobile(acc.Email, mobile);
+                    String msg = String.Format("[RESET] Email: {0} Phone: {1}", acc.Email, mobile);
+                    M_RESET.ReportProgress(50, msg);
+                    if (M_RESET.CancellationPending)
+                    {
+                        e.Cancel = true;
+                        M_RESET.ReportProgress(0);
+                        return;
+                    }
                 }
+                e.Result = 1;
+                M_RESET.ReportProgress(100);
             }
+            else if (type == 2)
+            {
+                String msg = String.Format("[RESET] Email: {0}", EMAIL);
+                M_RESET.ReportProgress(50, msg);
+                String mobile = getReset(EMAIL);
+                updateMobile(EMAIL, mobile);
+                msg = String.Format("[RESET] Email: {0} Phone: {1}", EMAIL, mobile);
+                M_RESET.ReportProgress(50, msg);
+                PHONE = mobile;
+                STEP = -1;
+                e.Result = 2;
+                M_RESET.ReportProgress(100);
+            }
+
         }
         /// <summary>
         /// 
@@ -711,8 +754,17 @@ namespace AutoRegFB
             }
             else
             {
-                MessageBox.Show("Reset all done.", "AutoRegFB", MessageBoxButtons.OK);
-                btnResetAll.Text = "Reset";
+                if (e.Result == null) return;
+                int type = (int) e.Result;
+                if (type == 1)
+                {
+                    MessageBox.Show("Reset all done.", "AutoRegFB", MessageBoxButtons.OK);
+                    btnResetAll.Text = "Reset";
+                }
+                else if (type == 2)
+                {
+                    geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
+                }
             }
         }
         #endregion
@@ -729,14 +781,15 @@ namespace AutoRegFB
             {
                 String msg = String.Format("[HIDECHATGROUP] Email: {0}", acc.Email);
                 hideChatGroup(acc.Email);
-                M_RESET.ReportProgress(50, msg);
-                if (M_RESET.CancellationPending)
+                M_HIDE.ReportProgress(50, msg);
+                if (M_HIDE.CancellationPending)
                 {
                     e.Cancel = true;
-                    M_RESET.ReportProgress(0);
+                    M_HIDE.ReportProgress(0);
                     return;
                 }
             }
+            M_HIDE.ReportProgress(100);
         }
         /// <summary>
         /// 
@@ -779,6 +832,150 @@ namespace AutoRegFB
         }
         #endregion
 
+        #region "M_GETCODE"
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_GetCode_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Dictionary<string, object> dic = (Dictionary<string, object>) e.Argument;
+            String msg = "[GETPINCODE] Working...";
+            M_GETCODE.ReportProgress(50, msg);
+            String pin = getCode(getMessage(EMAIL)[0]);
+            msg = "[GETPINCODE] Result: " + pin;
+            M_GETCODE.ReportProgress(50, msg);
+            dic.Add("value", pin);
+            e.Result = dic;
+            M_GETCODE.ReportProgress(100);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_GetCode_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            try
+            {
+                String msg = e.UserState.ToString();
+                lblMsg.Text = msg;
+            }
+            catch
+            {
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_GetCode_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Error != null)
+            {
+                return;
+            }
+            else
+            {
+                if (e.Result == null) return;
+                Dictionary<string, object> dic = (Dictionary<string, object>)e.Result;
+                String pinCode = (String)dic["value"];
+                if (pinCode != String.Empty)
+                {
+                    lblMsg.Text = String.Format("[REG] Email: {0} Phone {1}", EMAIL, PHONE);
+                    var input = (GeckoHtmlElement)dic["input"];
+                    input.SetAttribute("value", pinCode);
+                    var submit = (GeckoHtmlElement)dic["submit"];
+                    submit.Click();
+                }
+                else
+                {
+                    MessageBox.Show("Error get pin code!", "AutoRegFB", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+        #endregion
+
+        #region "M_CAPTCHA"
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_Captcha_DoWork(object sender, DoWorkEventArgs e)
+        {
+            if (e.Argument == null) return;
+            Dictionary<string, object> dic = (Dictionary<string, object>)e.Argument;
+            byte[] imageByteArray = (byte[]) dic["imageByteArray"];
+            String msg = "[DECAPTCHA] Working...";
+            M_CAPTCHA.ReportProgress(50, msg);
+            String captcha = getCaptchaCode(imageByteArray);
+            msg = "[DECAPTCHA] Result: " + captcha;
+            M_CAPTCHA.ReportProgress(50, msg);
+            dic.Add("value", captcha);
+            e.Result = dic;
+            if (M_CAPTCHA.CancellationPending)
+            {
+                e.Cancel = true;
+                M_CAPTCHA.ReportProgress(0);
+                return;
+            }
+            M_CAPTCHA.ReportProgress(100);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_Captcha_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            try
+            {
+                String msg = e.UserState.ToString();
+                lblMsg.Text = msg;
+            }
+            catch
+            {
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_Captcha_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+                return;
+            }
+            else if (e.Error != null)
+            {
+                return;
+            }
+            else
+            {
+                if (e.Result == null) return;
+                Dictionary<string, object> dic = (Dictionary<string, object>)e.Result;
+                String captcha = (String) dic["value"];
+                if (captcha != String.Empty)
+                {
+                    lblMsg.Text = String.Format("[REG] Email: {0} Phone {1}", EMAIL, PHONE);
+                    var input = (GeckoHtmlElement)dic["input"];
+                    input.SetAttribute("value", captcha);
+                    var submit = (GeckoHtmlElement)dic["submit"];
+                    submit.Click();
+                }
+                else
+                {
+                    MessageBox.Show("Error get captcha!", "AutoRegFB", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+        #endregion
+
         #region "EVENTS OF CONTROLS"
         private void btnLoginFB_Click(object sender, EventArgs e)
         {
@@ -812,6 +1009,18 @@ namespace AutoRegFB
         private void chk_CheckedChanged(object sender, EventArgs e)
         {
             ISDECAPTCHA = chkDecaptcha.Checked;
+            try
+            {
+                if (!ISDECAPTCHA)
+                {
+                    M_CAPTCHA.CancelAsync();
+                }
+            }
+            catch
+            { 
+            
+            }
+
         }
 
         private void btnOpenFBIDS_Click(object sender, EventArgs e)
@@ -872,7 +1081,7 @@ namespace AutoRegFB
                 {
                     case "RESET":
                         btnResetAll.Text = "Cancel";
-                        M_RESET.RunWorkerAsync();
+                        M_RESET.RunWorkerAsync(1);
                         break;
                     case "CANCEL":
                         M_RESET.CancelAsync();
@@ -897,12 +1106,7 @@ namespace AutoRegFB
                 CookieMan = Xpcom.QueryInterface<nsICookieManager>(CookieMan);
                 CookieMan.RemoveAll();
                 //
-                STEP = 1;
-                geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
-                //
-                String mobile = getReset(EMAIL);
-                updateMobile(EMAIL, mobile);
-                MessageBox.Show(String.Format("Email: {0} Phone: {1}", EMAIL, mobile), "AtutoRegFB", MessageBoxButtons.OK);
+                M_RESET.RunWorkerAsync(2);
             }
             catch
             {
@@ -1003,9 +1207,17 @@ namespace AutoRegFB
                 {
                     if (ISDECAPTCHA)
                     {
-                        TIMER.Interval = 2000;
-                        TIMER.Enabled = true;
-                        TIMER.Tick += new System.EventHandler(this.timer_Tick);
+                        ImageCreator imageCreator = new ImageCreator(geckoWebBrowser);
+                        GeckoImageElement imgCaptcha = (GeckoImageElement)document.Images[1];
+                        byte[] imageByteArray = imageCreator.CanvasGetPngImage((uint)imgCaptcha.OffsetLeft, (uint)imgCaptcha.OffsetTop, (uint)imgCaptcha.OffsetWidth, (uint)imgCaptcha.OffsetHeight);
+                        var submit = (GeckoHtmlElement)document.GetElementsByName("captcha_submit_text").FirstOrDefault();
+                        if (submit == null) submit = (GeckoHtmlElement)document.GetElementById("u_0_0");
+                        Dictionary<string, object> dic = new Dictionary<string, object>();
+                        dic.Add("input", captcha);
+                        dic.Add("submit", submit);
+                        dic.Add("imageByteArray", imageByteArray);
+                        M_CAPTCHA.RunWorkerAsync(dic);
+                        return;
                     }
                     captcha.Focus();
                     return;
@@ -1016,12 +1228,7 @@ namespace AutoRegFB
                 GeckoHtmlElement invalidElement = getGeckoHtmlElementInvalid(document);
                 if (sendConfirmCode != null || invalidElement != null)
                 {
-                    String mobile = getReset(EMAIL);
-                    PHONE = mobile;
-                    updateMobile(EMAIL, mobile);
-                    //
-                    STEP = -1;
-                    geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
+                    M_RESET.RunWorkerAsync(2);
                     return;
                 }
 
@@ -1041,20 +1248,22 @@ namespace AutoRegFB
                     String inputName = inputEx.GetAttribute("name");
                     if (inputClass == "_5whq input")
                     {
+                        var submit = getGeckoHtmlElementSubmit(document);
                         if (inputName == "contact_point")
                         {
                             inputEx.SetAttribute("value", PHONE);
+                            submit.Click();
+                            return;
                         }
                         else
                         {
-                            Task<String> taskMessage = Task.Factory.StartNew(() => getCode(getMessage(EMAIL)[0]));
-                            taskMessage.Wait();
-                            String pinCode = taskMessage.Result;
-                            inputEx.SetAttribute("value", pinCode);
+                            Dictionary<string, object> dic = new Dictionary<string, object>();
+                            dic.Add("input", inputEx);
+                            dic.Add("submit", submit);
+                            M_GETCODE.RunWorkerAsync(dic);
+                            return;
                         }
-                        var submit = getGeckoHtmlElementSubmit(document);
-                        submit.Click();
-                        return;
+                        
                     }
                 }
 
@@ -1062,12 +1271,11 @@ namespace AutoRegFB
                 GeckoHtmlElement pin = document.GetElementsByName("pin").FirstOrDefault();
                 if (pin != null)
                 {
-                    Task<String> taskMessage = Task.Factory.StartNew(() => getCode(getMessage(EMAIL)[0]));
-                    taskMessage.Wait();
-                    String pinCode = taskMessage.Result;
-                    pin.SetAttribute("value", pinCode);
-                    var submit = (GeckoInputElement)document.GetElementsByClassName("btn btnC").FirstOrDefault();
-                    submit.Click();
+                    var submit = (GeckoHtmlElement)document.GetElementsByClassName("btn btnC").FirstOrDefault();
+                    Dictionary<string, object> dic = new Dictionary<string, object>();
+                    dic.Add("input", pin);
+                    dic.Add("submit", submit);
+                    M_GETCODE.RunWorkerAsync(dic);
                     return;
                 }
 
@@ -1075,12 +1283,11 @@ namespace AutoRegFB
                 GeckoHtmlElement code = getGeckoHtmlElementCode(document);
                 if (code != null)
                 {
-                    Task<String> taskMessage = Task.Factory.StartNew(() => getCode(getMessage(EMAIL)[0]));
-                    taskMessage.Wait();
-                    String pinCode = taskMessage.Result;
-                    code.SetAttribute("value", pinCode);
                     var submit = getGeckoHtmlElementSubmit(document);
-                    submit.Click();
+                    Dictionary<string, object> dic = new Dictionary<string, object>();
+                    dic.Add("input", code);
+                    dic.Add("submit", submit);
+                    M_GETCODE.RunWorkerAsync(dic);
                     return;
                 }
 
@@ -1159,25 +1366,28 @@ namespace AutoRegFB
                     if (idCaptcha == "u_0_0" && classCaptcha == "_5whq input")
                     {
                         //Mã xác nhận
-                        Task<String> taskMessage = Task.Factory.StartNew(() => getCode(getMessage(EMAIL)[0]));
-                        taskMessage.Wait();
-                        String pinCode = taskMessage.Result;
-                        captcha.SetAttribute("value", pinCode);
                         var submitSubmit = (GeckoHtmlElement)document.GetElementsByName("submit[Submit]").FirstOrDefault();
-                        if (submitSubmit != null)
-                        {
-                            submitSubmit.Click();
-                            return;
-                        }
+                        Dictionary<string, object> dic = new Dictionary<string, object>();
+                        dic.Add("input", captcha);
+                        dic.Add("submit", submitSubmit);
+                        M_GETCODE.RunWorkerAsync(dic);
                     }
                     else
                     { 
                         //Captcha
                         if (ISDECAPTCHA)
                         {
-                            TIMER.Interval = 2000;
-                            TIMER.Enabled = true;
-                            TIMER.Tick += new System.EventHandler(this.timer_Tick);
+                            ImageCreator imageCreator = new ImageCreator(geckoWebBrowser);
+                            GeckoImageElement imgCaptcha = (GeckoImageElement)document.Images[1];
+                            byte[] imageByteArray = imageCreator.CanvasGetPngImage((uint)imgCaptcha.OffsetLeft, (uint)imgCaptcha.OffsetTop, (uint)imgCaptcha.OffsetWidth, (uint)imgCaptcha.OffsetHeight);
+                            var submit = (GeckoHtmlElement)document.GetElementsByName("captcha_submit_text").FirstOrDefault();
+                            if (submit == null) submit = (GeckoHtmlElement)document.GetElementById("u_0_0");
+                            Dictionary<string, object> dic = new Dictionary<string, object>();
+                            dic.Add("input", captcha);
+                            dic.Add("submit", submit);
+                            dic.Add("imageByteArray", imageByteArray);
+                            M_CAPTCHA.RunWorkerAsync(dic);
+                            return;
                         }
                         captcha.Focus();
                         return;
@@ -1560,40 +1770,6 @@ namespace AutoRegFB
             TYPE = 2;
             STEP = 1;
             fillLoginFB();
-        }
-
-        private void timer_Tick(object sender, EventArgs e)
-        {
-            TIMER.Enabled = false;
-            GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
-            ImageCreator imageCreator = new ImageCreator(geckoWebBrowser);
-            GeckoImageElement imgCaptcha = (GeckoImageElement) document.Images[1];
-            byte[] imageByteArray = imageCreator.CanvasGetPngImage((uint)imgCaptcha.OffsetLeft, (uint)imgCaptcha.OffsetTop, (uint)imgCaptcha.OffsetWidth, (uint)imgCaptcha.OffsetHeight);
-            String msgTmp = lblMsg.Text;
-            lblMsg.Text = "[DECAPTCHA] Working...";
-            Task<String> taskCaptcha = Task.Factory.StartNew(() => getCaptchaCode(imageByteArray));
-            taskCaptcha.Wait();
-            String strCaptcha = taskCaptcha.Result;
-            lblMsg.Text = msgTmp;
-
-            if (strCaptcha != String.Empty)
-            {
-                //captcha_response
-                GeckoHtmlElement captcha = (GeckoHtmlElement)document.GetElementsByName("captcha_response").FirstOrDefault();
-                captcha.SetAttribute("value", strCaptcha);
-                //captcha_submit_text
-                var signup_button = (GeckoInputElement)document.GetElementsByName("captcha_submit_text").FirstOrDefault();
-                //u_0_0
-                if (signup_button == null)
-                {
-                    signup_button = (GeckoInputElement)document.GetElementById("u_0_0");
-                }
-                signup_button.Click();
-            }
-            else
-            {
-                MessageBox.Show("Error get captcha!", "AutoRegFB", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
         #endregion
     }
