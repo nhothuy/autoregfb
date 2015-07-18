@@ -113,7 +113,15 @@ namespace AutoRegFB
         /// <param name="e"></param>
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            geckoWebBrowser.Dispose();
+            try
+            {
+                geckoWebBrowser.Dispose();
+                Xpcom.Shutdown();
+            }
+            catch
+            {
+            
+            }
         }
         #endregion
 
@@ -841,7 +849,7 @@ namespace AutoRegFB
         void m_GetCode_DoWork(object sender, DoWorkEventArgs e)
         {
             Dictionary<string, object> dic = (Dictionary<string, object>) e.Argument;
-            String msg = "[GETPINCODE] Working...";
+            String msg = "[GETPINCODE] Working... Email: " + EMAIL;
             M_GETCODE.ReportProgress(50, msg);
             String pin = getCode(getMessage(EMAIL)[0]);
             msg = "[GETPINCODE] Result: " + pin;
@@ -1142,239 +1150,72 @@ namespace AutoRegFB
         #region "EVENTS OF GECKOFX"
         private void geckoWebBrowser_DocumentCompleted(object sender, Gecko.Events.GeckoDocumentCompletedEventArgs e)
         {
-            if (TYPE == 1)
+            try
             {
-                if (STEP == -1)
+
+                if (TYPE == 1)
                 {
-                    STEP = 1;
-                    fillInfoFBReset();
-                    return;
-                }
-                if (STEP == 2)
-                {
-                    STEP = 1;
-                    var account = (from acc in ACCOUNTS
-                                   where acc.Used == false
-                                   select acc).FirstOrDefault();
-                    if (account == null)
+                    if (STEP == -1)
                     {
-                        lblMsg.Text = "All account are used.";
+                        STEP = 1;
+                        fillInfoFBReset();
                         return;
                     }
-                    TIMER_REG.Interval = 2000;
-                    TIMER_REG.Enabled = true;
-                    TIMER_REG.Tick += new System.EventHandler(this.timer_Reg_Tick);
-                    geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
-                    return;
-                }
-                GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
-                GeckoHtmlElement captcha = (GeckoHtmlElement)document.GetElementsByName("captcha_response").FirstOrDefault();
-                String typeCaptcha = "hidden";
-                if (captcha != null) typeCaptcha = captcha.GetAttribute("type");
-
-                //Fake name
-                GeckoHtmlElement helpFackeName = getGeckoHtmlElementHelp(document);
-                if (helpFackeName != null)
-                {
-                    GeckoSelectElement gender = (GeckoSelectElement)document.GetElementById("gender");
-                    Int32 intGender = gender.SelectedIndex;
-                    //
-                    Gender eGender = Gender.Male;
-                    switch (intGender)
+                    if (STEP == 2)
                     {
-                        case 1:
-                            eGender = Gender.Female;
-                            break;
-                        case 2:
-                            eGender = Gender.Male;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    GeckoHtmlElement firstName = document.GetElementsByName("firstname").FirstOrDefault();
-                    firstName.SetAttribute("value", NameGenerator.GenerateFirstName(eGender));
-                    GeckoHtmlElement lastName = document.GetElementsByName("lastname").FirstOrDefault();
-                    lastName.SetAttribute("value", NameGenerator.GenerateLastName());
-
-                    var signup_button = (GeckoInputElement)document.GetElementById("signup_button");
-                    signup_button.Click();
-                    return;
-                }
-                
-                //Captcha
-                if (captcha != null && typeCaptcha != "hidden")
-                {
-                    if (ISDECAPTCHA)
-                    {
-                        ImageCreator imageCreator = new ImageCreator(geckoWebBrowser);
-                        GeckoImageElement imgCaptcha = (GeckoImageElement)document.Images[1];
-                        byte[] imageByteArray = imageCreator.CanvasGetPngImage((uint)imgCaptcha.OffsetLeft, (uint)imgCaptcha.OffsetTop, (uint)imgCaptcha.OffsetWidth, (uint)imgCaptcha.OffsetHeight);
-                        var submit = (GeckoHtmlElement)document.GetElementsByName("captcha_submit_text").FirstOrDefault();
-                        if (submit == null) submit = (GeckoHtmlElement)document.GetElementById("u_0_0");
-                        Dictionary<string, object> dic = new Dictionary<string, object>();
-                        dic.Add("input", captcha);
-                        dic.Add("submit", submit);
-                        dic.Add("imageByteArray", imageByteArray);
-                        M_CAPTCHA.RunWorkerAsync(dic);
-                        return;
-                    }
-                    captcha.Focus();
-                    return;
-                }
-
-                //ConfirmCode, invalid
-                GeckoHtmlElement sendConfirmCode = getGeckoHtmlElementSendConfirmCode(document);
-                GeckoHtmlElement invalidElement = getGeckoHtmlElementInvalid(document);
-                if (sendConfirmCode != null || invalidElement != null)
-                {
-                    M_RESET.RunWorkerAsync(2);
-                    return;
-                }
-
-                //Submit
-                var submission_request = (GeckoInputElement)document.GetElementsByName("submission_request").FirstOrDefault();
-                if (submission_request != null)
-                {
-                    submission_request.Click();
-                    return;
-                }
-
-                //Nhập số điện thoại, nhập mã code
-                GeckoHtmlElement inputEx = (GeckoHtmlElement)document.GetElementById("u_0_0");
-                if (inputEx != null)
-                {
-                    String inputClass = inputEx.GetAttribute("class");
-                    String inputName = inputEx.GetAttribute("name");
-                    if (inputClass == "_5whq input")
-                    {
-                        var submit = getGeckoHtmlElementSubmit(document);
-                        if (inputName == "contact_point")
+                        STEP = 1;
+                        var account = (from acc in ACCOUNTS
+                                       where acc.Used == false
+                                       select acc).FirstOrDefault();
+                        if (account == null)
                         {
-                            inputEx.SetAttribute("value", PHONE);
-                            submit.Click();
+                            lblMsg.Text = "All account are used.";
                             return;
                         }
-                        else
-                        {
-                            Dictionary<string, object> dic = new Dictionary<string, object>();
-                            dic.Add("input", inputEx);
-                            dic.Add("submit", submit);
-                            M_GETCODE.RunWorkerAsync(dic);
-                            return;
-                        }
-                        
+                        TIMER_REG.Interval = 2000;
+                        TIMER_REG.Enabled = true;
+                        TIMER_REG.Tick += new System.EventHandler(this.timer_Reg_Tick);
+                        geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
+                        return;
                     }
-                }
+                    GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+                    GeckoHtmlElement captcha = (GeckoHtmlElement)document.GetElementsByName("captcha_response").FirstOrDefault();
+                    String typeCaptcha = "hidden";
+                    if (captcha != null) typeCaptcha = captcha.GetAttribute("type");
 
-                //Nhập mã code
-                GeckoHtmlElement pin = document.GetElementsByName("pin").FirstOrDefault();
-                if (pin != null)
-                {
-                    var submit = (GeckoHtmlElement)document.GetElementsByClassName("btn btnC").FirstOrDefault();
-                    Dictionary<string, object> dic = new Dictionary<string, object>();
-                    dic.Add("input", pin);
-                    dic.Add("submit", submit);
-                    M_GETCODE.RunWorkerAsync(dic);
-                    return;
-                }
-
-                //Nhập mã code
-                GeckoHtmlElement code = getGeckoHtmlElementCode(document);
-                if (code != null)
-                {
-                    var submit = getGeckoHtmlElementSubmit(document);
-                    Dictionary<string, object> dic = new Dictionary<string, object>();
-                    dic.Add("input", code);
-                    dic.Add("submit", submit);
-                    M_GETCODE.RunWorkerAsync(dic);
-                    return;
-                }
-
-                //NextWizard
-                var nextWizard = getGeckoHtmlElementNextWizard(document);
-                if (nextWizard != null)
-                {
-                    //Logout
-                    var logout = getGeckoHtmlElementLogout(document);
-                    if (logout != null)
+                    //Fake name
+                    GeckoHtmlElement helpFackeName = getGeckoHtmlElementHelp(document);
+                    if (helpFackeName != null)
                     {
-                        //Lưu thông tin
-                        String cookie = document.Cookie;
-                        if (cookie != String.Empty)
-                        {
-                            String[] arrCookie = cookie.Split(';');
-                            foreach (String cook in arrCookie)
-                            {
-                                if (cook.Trim().StartsWith("c_user="))
-                                {
-                                    String fbid = cook.Replace("c_user=", "").Trim();
-                                    if (fbid != String.Empty)
-                                    {
-                                        saveFileFbids(fbid);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
+                        GeckoSelectElement gender = (GeckoSelectElement)document.GetElementById("gender");
+                        Int32 intGender = gender.SelectedIndex;
                         //
-                        updateSatatus(EMAIL, true);
-                        //
-                        STEP = 2;
-                        //logout
-                        logout.Click();
+                        Gender eGender = Gender.Male;
+                        switch (intGender)
+                        {
+                            case 1:
+                                eGender = Gender.Female;
+                                break;
+                            case 2:
+                                eGender = Gender.Male;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        GeckoHtmlElement firstName = document.GetElementsByName("firstname").FirstOrDefault();
+                        firstName.SetAttribute("value", NameGenerator.GenerateFirstName(eGender));
+                        GeckoHtmlElement lastName = document.GetElementsByName("lastname").FirstOrDefault();
+                        lastName.SetAttribute("value", NameGenerator.GenerateLastName());
+
+                        var signup_button = (GeckoInputElement)document.GetElementById("signup_button");
+                        signup_button.Click();
                         return;
                     }
-                    else
+
+                    //Captcha
+                    if (captcha != null && typeCaptcha != "hidden")
                     {
-                        nextWizard.Click();
-                        return;
-                    }
-                }
-            }
-            else if (TYPE == 2)
-            {
-                if (STEP == 10)
-                {
-                    //removeCookie();
-                    STEP = 1;
-                    var account = (from acc in ACCOUNTS
-                                   where acc.Done == false
-                                   select acc).FirstOrDefault();
-                    if (account == null)
-                    {
-                        lblMsg.Text = "All account invited.";
-                        return;
-                    }
-                    TIMER_PLAY.Interval = 2000;
-                    TIMER_PLAY.Enabled = true;
-                    TIMER_PLAY.Tick += new System.EventHandler(this.timer_Play_Tick);
-                    geckoWebBrowser.Navigate(URL_FACEBOOK);
-                    return;
-                }
-                //
-                GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
-                GeckoHtmlElement captcha = (GeckoHtmlElement)document.GetElementsByName("captcha_response").FirstOrDefault();
-                String typeCaptcha = "hidden";
-                if (captcha != null) typeCaptcha = captcha.GetAttribute("type");
-                
-                //Captcha
-                if (captcha != null && typeCaptcha != "hidden")
-                {
-                    String idCaptcha = captcha.GetAttribute("id");
-                    String classCaptcha = captcha.GetAttribute("class");
-                    if (idCaptcha == "u_0_0" && classCaptcha == "_5whq input")
-                    {
-                        //Mã xác nhận
-                        var submitSubmit = (GeckoHtmlElement)document.GetElementsByName("submit[Submit]").FirstOrDefault();
-                        Dictionary<string, object> dic = new Dictionary<string, object>();
-                        dic.Add("input", captcha);
-                        dic.Add("submit", submitSubmit);
-                        M_GETCODE.RunWorkerAsync(dic);
-                    }
-                    else
-                    { 
-                        //Captcha
                         if (ISDECAPTCHA)
                         {
                             ImageCreator imageCreator = new ImageCreator(geckoWebBrowser);
@@ -1392,75 +1233,253 @@ namespace AutoRegFB
                         captcha.Focus();
                         return;
                     }
-                }
 
-                //submit[Continue]
-                var submitContinue = (GeckoHtmlElement)document.GetElementsByName("submit[Continue]").FirstOrDefault();
-                if (submitContinue != null)
-                {
-                    submitContinue.Click();
-                    return;
-                }
-
-                //submit[Okay]
-                var submitOkay = (GeckoHtmlElement)document.GetElementsByName("submit[Okay]").FirstOrDefault();
-                if (submitOkay != null)
-                {
-                    submitOkay.Click();
-                    return;
-                }
-                
-                //Accept play PK
-                if (ISPLAYPK)
-                {
-                    var acceptPlay = getGeckoHtmlElementAcceptPlay(document);
-                    if (acceptPlay != null)
+                    //ConfirmCode, invalid
+                    GeckoHtmlElement sendConfirmCode = getGeckoHtmlElementSendConfirmCode(document);
+                    GeckoHtmlElement invalidElement = getGeckoHtmlElementInvalid(document);
+                    if (sendConfirmCode != null || invalidElement != null)
                     {
-                        acceptPlay.Click();
-                        TIMER_ACCEPT.Interval = 2000;
-                        TIMER_ACCEPT.Enabled = true;
-                        TIMER_ACCEPT.Tick += new System.EventHandler(this.timer_Accept_Tick);
+                        M_RESET.RunWorkerAsync(2);
                         return;
                     }
 
-                    String head = document.Head.InnerHtml;
-                    String accessToken = getAccessToken(head);
-                    if (accessToken != String.Empty)
+                    //Submit
+                    var submission_request = (GeckoInputElement)document.GetElementsByName("submission_request").FirstOrDefault();
+                    if (submission_request != null)
                     {
-                        String url = String.Format("https://graph.facebook.com/v2.2/me?access_token={0}", accessToken);
-                        String ret = doGet(url);
-                        if (ret != String.Empty)
+                        submission_request.Click();
+                        return;
+                    }
+
+                    //Nhập số điện thoại, nhập mã code
+                    GeckoHtmlElement inputEx = (GeckoHtmlElement)document.GetElementById("u_0_0");
+                    if (inputEx != null)
+                    {
+                        String inputClass = inputEx.GetAttribute("class");
+                        String inputName = inputEx.GetAttribute("name");
+                        if (inputClass == "_5whq input")
                         {
-                            JToken jToken = JObject.Parse(ret);
-                            String fbid = jToken["id"].ToString();
-                            String name = jToken["name"].ToString();
-                            String reqLogin = getDataLogin(fbid, name, accessToken);
-                            String urlLogin = String.Format(URLLOGIN, DateTime.Now.ToOADate().ToString());
-                            String retLogin = doPost(urlLogin, reqLogin);
-                            JToken jTokenLogin = JObject.Parse(retLogin);
-                            String code = jTokenLogin["ErrorCode"].ToString();
-                            lblMsg.Text = String.Format("[PLAY] FBID:{0} Code:{1}", fbid, code);
+                            var submit = getGeckoHtmlElementSubmit(document);
+                            if (inputName == "contact_point")
+                            {
+                                inputEx.SetAttribute("value", PHONE);
+                                submit.Click();
+                                return;
+                            }
+                            else
+                            {
+                                Dictionary<string, object> dic = new Dictionary<string, object>();
+                                dic.Add("input", inputEx);
+                                dic.Add("submit", submit);
+                                M_GETCODE.RunWorkerAsync(dic);
+                                return;
+                            }
+
                         }
-                        //
-                        STEP = 3;
-                        //
+                    }
+
+                    //Nhập mã code
+                    GeckoHtmlElement pin = document.GetElementsByName("pin").FirstOrDefault();
+                    if (pin != null)
+                    {
+                        var submit = (GeckoHtmlElement)document.GetElementsByClassName("btn btnC").FirstOrDefault();
+                        Dictionary<string, object> dic = new Dictionary<string, object>();
+                        dic.Add("input", pin);
+                        dic.Add("submit", submit);
+                        M_GETCODE.RunWorkerAsync(dic);
+                        return;
+                    }
+
+                    //Nhập mã code
+                    GeckoHtmlElement code = getGeckoHtmlElementCode(document);
+                    if (code != null)
+                    {
+                        var submit = getGeckoHtmlElementSubmit(document);
+                        Dictionary<string, object> dic = new Dictionary<string, object>();
+                        dic.Add("input", code);
+                        dic.Add("submit", submit);
+                        M_GETCODE.RunWorkerAsync(dic);
+                        return;
+                    }
+
+                    //NextWizard
+                    var nextWizard = getGeckoHtmlElementNextWizard(document);
+                    if (nextWizard != null)
+                    {
+                        //Logout
+                        var logout = getGeckoHtmlElementLogout(document);
+                        if (logout != null)
+                        {
+                            //Lưu thông tin
+                            String cookie = document.Cookie;
+                            if (cookie != String.Empty)
+                            {
+                                String[] arrCookie = cookie.Split(';');
+                                foreach (String cook in arrCookie)
+                                {
+                                    if (cook.Trim().StartsWith("c_user="))
+                                    {
+                                        String fbid = cook.Replace("c_user=", "").Trim();
+                                        if (fbid != String.Empty)
+                                        {
+                                            saveFileFbids(fbid);
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            //
+                            updateSatatus(EMAIL, true);
+                            //
+                            STEP = 2;
+                            //logout
+                            logout.Click();
+                            return;
+                        }
+                        else
+                        {
+                            nextWizard.Click();
+                            return;
+                        }
+                    }
+                }
+                else if (TYPE == 2)
+                {
+                    if (STEP == 10)
+                    {
+                        //removeCookie();
+                        STEP = 1;
+                        var account = (from acc in ACCOUNTS
+                                       where acc.Done == false
+                                       select acc).FirstOrDefault();
+                        if (account == null)
+                        {
+                            lblMsg.Text = "All account invited.";
+                            return;
+                        }
+                        TIMER_PLAY.Interval = 2000;
+                        TIMER_PLAY.Enabled = true;
+                        TIMER_PLAY.Tick += new System.EventHandler(this.timer_Play_Tick);
                         geckoWebBrowser.Navigate(URL_FACEBOOK);
                         return;
                     }
-                }
-                var logout = getGeckoHtmlElementLogout(document);
-                if (logout != null)
-                {
-                    //Đăng nhập thành công
-                    if (ISPLAYPK)
+                    //
+                    GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+                    GeckoHtmlElement captcha = (GeckoHtmlElement)document.GetElementsByName("captcha_response").FirstOrDefault();
+                    String typeCaptcha = "hidden";
+                    if (captcha != null) typeCaptcha = captcha.GetAttribute("type");
+
+                    //Captcha
+                    if (captcha != null && typeCaptcha != "hidden")
                     {
-                        if (STEP == 1)
+                        String idCaptcha = captcha.GetAttribute("id");
+                        String classCaptcha = captcha.GetAttribute("class");
+                        if (idCaptcha == "u_0_0" && classCaptcha == "_5whq input")
                         {
-                            STEP = 2;
-                            geckoWebBrowser.Navigate(URL_ACCEPT_PK);
+                            //Mã xác nhận
+                            var submitSubmit = (GeckoHtmlElement)document.GetElementsByName("submit[Submit]").FirstOrDefault();
+                            Dictionary<string, object> dic = new Dictionary<string, object>();
+                            dic.Add("input", captcha);
+                            dic.Add("submit", submitSubmit);
+                            M_GETCODE.RunWorkerAsync(dic);
+                        }
+                        else
+                        {
+                            //Captcha
+                            if (ISDECAPTCHA)
+                            {
+                                ImageCreator imageCreator = new ImageCreator(geckoWebBrowser);
+                                GeckoImageElement imgCaptcha = (GeckoImageElement)document.Images[1];
+                                byte[] imageByteArray = imageCreator.CanvasGetPngImage((uint)imgCaptcha.OffsetLeft, (uint)imgCaptcha.OffsetTop, (uint)imgCaptcha.OffsetWidth, (uint)imgCaptcha.OffsetHeight);
+                                var submit = (GeckoHtmlElement)document.GetElementsByName("captcha_submit_text").FirstOrDefault();
+                                if (submit == null) submit = (GeckoHtmlElement)document.GetElementById("u_0_0");
+                                Dictionary<string, object> dic = new Dictionary<string, object>();
+                                dic.Add("input", captcha);
+                                dic.Add("submit", submit);
+                                dic.Add("imageByteArray", imageByteArray);
+                                M_CAPTCHA.RunWorkerAsync(dic);
+                                return;
+                            }
+                            captcha.Focus();
                             return;
                         }
-                        else if (STEP == 3)
+                    }
+
+                    //submit[Continue]
+                    var submitContinue = (GeckoHtmlElement)document.GetElementsByName("submit[Continue]").FirstOrDefault();
+                    if (submitContinue != null)
+                    {
+                        submitContinue.Click();
+                        return;
+                    }
+
+                    //submit[Okay]
+                    var submitOkay = (GeckoHtmlElement)document.GetElementsByName("submit[Okay]").FirstOrDefault();
+                    if (submitOkay != null)
+                    {
+                        submitOkay.Click();
+                        return;
+                    }
+
+                    //Accept play PK
+                    if (ISPLAYPK)
+                    {
+                        var acceptPlay = getGeckoHtmlElementAcceptPlay(document);
+                        if (acceptPlay != null)
+                        {
+                            acceptPlay.Click();
+                            TIMER_ACCEPT.Interval = 2000;
+                            TIMER_ACCEPT.Enabled = true;
+                            TIMER_ACCEPT.Tick += new System.EventHandler(this.timer_Accept_Tick);
+                            return;
+                        }
+
+                        String head = document.Head.InnerHtml;
+                        String accessToken = getAccessToken(head);
+                        if (accessToken != String.Empty)
+                        {
+                            String url = String.Format("https://graph.facebook.com/v2.2/me?access_token={0}", accessToken);
+                            String ret = doGet(url);
+                            if (ret != String.Empty)
+                            {
+                                JToken jToken = JObject.Parse(ret);
+                                String fbid = jToken["id"].ToString();
+                                String name = jToken["name"].ToString();
+                                String reqLogin = getDataLogin(fbid, name, accessToken);
+                                String urlLogin = String.Format(URLLOGIN, DateTime.Now.ToOADate().ToString());
+                                String retLogin = doPost(urlLogin, reqLogin);
+                                JToken jTokenLogin = JObject.Parse(retLogin);
+                                String code = jTokenLogin["ErrorCode"].ToString();
+                                lblMsg.Text = String.Format("[PLAY] FBID:{0} Code:{1}", fbid, code);
+                            }
+                            //
+                            STEP = 3;
+                            //
+                            geckoWebBrowser.Navigate(URL_FACEBOOK);
+                            return;
+                        }
+                    }
+                    var logout = getGeckoHtmlElementLogout(document);
+                    if (logout != null)
+                    {
+                        //Đăng nhập thành công
+                        if (ISPLAYPK)
+                        {
+                            if (STEP == 1)
+                            {
+                                STEP = 2;
+                                geckoWebBrowser.Navigate(URL_ACCEPT_PK);
+                                return;
+                            }
+                            else if (STEP == 3)
+                            {
+                                updateDone(EMAIL, true);
+                                STEP = 10;
+                                logout.Click();
+                                return;
+                            }
+                        }
+                        else
                         {
                             updateDone(EMAIL, true);
                             STEP = 10;
@@ -1468,16 +1487,13 @@ namespace AutoRegFB
                             return;
                         }
                     }
-                    else
-                    {
-                        updateDone(EMAIL, true);
-                        STEP = 10;
-                        logout.Click();
-                        return;
-                    }
                 }
             }
-
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                throw ex;
+            }
         }
         #endregion
 
