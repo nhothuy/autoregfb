@@ -1564,9 +1564,9 @@ namespace AutoRegFB
             foreach (GeckoElement node in nodes)
             {
                 String html = ((GeckoHtmlElement)node).InnerHtml;
-                if (html != null && (html.Contains("Không thể xác thực") || html.Contains("already in use by a registered account") || html.Contains("Could not validate your mobile number")))
+                if (html != null && (html.Contains("Không thể xác thực") || html.Contains("sử dụng một địa chỉ email hoặc số di động") || html.Contains("already in use by a registered account") || html.Contains("Could not validate your mobile number")))
                 {
-                    return (GeckoHtmlElement)node;
+                    return (GeckoHtmlElement)node; 
                 }
             }
             return null;
