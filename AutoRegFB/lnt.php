@@ -1,5 +1,4 @@
 <?php
-ini_set('max_execution_time', 300); //300 seconds = 5 minutes
 $type = $_GET["t"];
 $username = $_GET["e"];
 $pass = 'admin123';
@@ -45,7 +44,7 @@ switch ($type) {
         Login($username, $pass);
         $msg = GetMessages();
         echo @json_encode($msg);
-        LogOut();
+        //LogOut();
         break;
     case "3":
         //ChangeNumber
@@ -69,6 +68,7 @@ switch ($type) {
         LogOut();
         break;
 	case "5":
+		ini_set('max_execution_time', 300); //300 seconds = 5 minutes
 		//hideChatGroup
 		try {
 			Login($username, $pass);
@@ -78,7 +78,7 @@ switch ($type) {
 				HideChatGroup($cid);			
 			}
 			echo $done;
-			LogOut();
+			//LogOut();
 		} catch (Exception $e) {
 			echo $err;
 		}
