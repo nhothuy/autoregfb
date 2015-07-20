@@ -56,6 +56,8 @@ namespace AutoRegFB
         private String URL_FACEBOOK = "https://m.facebook.com";
         private String PASS = "admin123";
         private String URL_ACCEPT_PK = "https://www.facebook.com/v2.2/dialog/oauth?app_id=163291417175382&client_id=163291417175382&display=popup&domain=cashkinggame.com&e2e=%7B%7D&locale=en_US&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FxRlIuTsSMoE.js%3Fversion%3D41%23cb%3Df3e4d2188dbe56c%26domain%3Dcashkinggame.com%26origin%3Dhttps%253A%252F%252Fcashkinggame.com%252Ff182e13444e3852%26relation%3Dopener%26frame%3Df233935ddfb058&response_type=token%2Csigned_request&scope=user_friends%2Cemail%2Cpublish_actions%2Cpublic_profile&sdk=joey&version=v2.2";
+        private bool ISSTOP_REG = false;
+        private bool ISSTOP_PLAY = false;
         #endregion
 
         #region "EVENTS ON FORM"
@@ -985,18 +987,6 @@ namespace AutoRegFB
         #endregion
 
         #region "EVENTS OF CONTROLS"
-        private void btnRefresh_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                geckoWebBrowser.Refresh();
-            }
-            catch
-            {
-
-            }
-        }
-
         private void btnGetPinCode_Click(object sender, EventArgs e)
         {
             try
@@ -1027,23 +1017,35 @@ namespace AutoRegFB
         {
             try
             {
-                if (ACCOUNTS == null || ACCOUNTS.Count == 0) return;
-                if (MessageBox.Show("Are you sure to continue?", "AutoRegFB", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.No)
+                String btnText = btnLoginFB.Text;
+                if (btnText == "Stop")
                 {
-                    return;
+                    btnLoginFB.Text = "Login FB";
+                    ISSTOP_PLAY = true;
                 }
-                if (geckoWebBrowser.Url.AbsoluteUri != URL_FACEBOOK)
+                else if (btnText == "Login FB")
                 {
-                    geckoWebBrowser.Navigate(URL_FACEBOOK);
-                    TIMER_PLAY.Interval = 2000;
-                    TIMER_PLAY.Enabled = true;
-                    TIMER_PLAY.Tick += new System.EventHandler(this.timer_Play_Tick);
-                }
-                else
-                {
-                    TYPE = 2;
-                    STEP = 1;
-                    fillLoginFB();
+                    btnLoginFB.Text = "Stop";
+                    ISSTOP_PLAY = false;
+
+                    if (ACCOUNTS == null || ACCOUNTS.Count == 0) return;
+                    if (MessageBox.Show("Are you sure to continue?", "AutoRegFB", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.No)
+                    {
+                        return;
+                    }
+                    if (geckoWebBrowser.Url.AbsoluteUri != URL_FACEBOOK)
+                    {
+                        geckoWebBrowser.Navigate(URL_FACEBOOK);
+                        TIMER_PLAY.Interval = 2000;
+                        TIMER_PLAY.Enabled = true;
+                        TIMER_PLAY.Tick += new System.EventHandler(this.timer_Play_Tick);
+                    }
+                    else
+                    {
+                        TYPE = 2;
+                        STEP = 1;
+                        fillLoginFB();
+                    }
                 }
             }
             catch
@@ -1104,18 +1106,29 @@ namespace AutoRegFB
         }
         private void btnRegFB_Click(object sender, EventArgs e)
         {
-            if (geckoWebBrowser.Url.AbsoluteUri != URL_REG_FACEBOOK)
+            String btnText = btnRegFB.Text;
+            if (btnText == "Stop")
             {
-                geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
-                TIMER_REG.Interval = 2000;
-                TIMER_REG.Enabled = true;
-                TIMER_REG.Tick += new System.EventHandler(this.timer_Reg_Tick);
+                btnRegFB.Text = "Reg FB";
+                ISSTOP_REG = true;
             }
-            else
+            else if (btnText == "Reg FB")
             {
-                TYPE = 1;
-                STEP = 1;
-                fillInfoFB();
+                btnRegFB.Text = "Stop";
+                ISSTOP_REG = false;
+                if (geckoWebBrowser.Url.AbsoluteUri != URL_REG_FACEBOOK)
+                {
+                    geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
+                    TIMER_REG.Interval = 2000;
+                    TIMER_REG.Enabled = true;
+                    TIMER_REG.Tick += new System.EventHandler(this.timer_Reg_Tick);
+                }
+                else
+                {
+                    TYPE = 1;
+                    STEP = 1;
+                    fillInfoFB();
+                }
             }
         }
         private void btnResetAll_Click(object sender, EventArgs e)
@@ -1208,11 +1221,16 @@ namespace AutoRegFB
                         if (account == null)
                         {
                             lblMsg.Text = "All account are used.";
+                            btnRegFB.Text = "Reg FB";
+                            ISSTOP_REG = false;
                             return;
                         }
-                        TIMER_REG.Interval = 2000;
-                        TIMER_REG.Enabled = true;
-                        TIMER_REG.Tick += new System.EventHandler(this.timer_Reg_Tick);
+                        if (!ISSTOP_REG)
+                        {
+                            TIMER_REG.Interval = 2000;
+                            TIMER_REG.Enabled = true;
+                            TIMER_REG.Tick += new System.EventHandler(this.timer_Reg_Tick);
+                        }
                         geckoWebBrowser.Navigate(URL_REG_FACEBOOK);
                         return;
                     }
@@ -1387,18 +1405,24 @@ namespace AutoRegFB
                     {
                         //removeCookie();
                         STEP = 1;
+                        
                         var account = (from acc in ACCOUNTS
                                        where acc.Done == false
                                        select acc).FirstOrDefault();
                         if (account == null)
                         {
                             lblMsg.Text = "All account invited.";
+                            btnRegFB.Text = "Login FB";
+                            ISSTOP_PLAY = false;
                             return;
                         }
-                        TIMER_PLAY.Interval = 2000;
-                        TIMER_PLAY.Enabled = true;
-                        TIMER_PLAY.Tick += new System.EventHandler(this.timer_Play_Tick);
-                        geckoWebBrowser.Navigate(URL_FACEBOOK);
+                        if (!ISSTOP_PLAY)
+                        {
+                            TIMER_PLAY.Interval = 2000;
+                            TIMER_PLAY.Enabled = true;
+                            TIMER_PLAY.Tick += new System.EventHandler(this.timer_Play_Tick);
+                            geckoWebBrowser.Navigate(URL_FACEBOOK);
+                        }
                         return;
                     }
                     //
@@ -1564,7 +1588,7 @@ namespace AutoRegFB
             foreach (GeckoElement node in nodes)
             {
                 String html = ((GeckoHtmlElement)node).InnerHtml;
-                if (html != null && (html.Contains("Không thể xác thực") || html.Contains("sử dụng một địa chỉ email hoặc số di động") || html.Contains("already in use by a registered account") || html.Contains("Could not validate your mobile number")))
+                if (html != null && (html.Contains("Không thể xác thực") || html.Contains("lòng thử lại số khác") || html.Contains("try a different number") || html.Contains("sử dụng một địa chỉ email hoặc số di động") || html.Contains("already in use by a registered account") || html.Contains("Could not validate your mobile number")))
                 {
                     return (GeckoHtmlElement)node; 
                 }
@@ -1842,9 +1866,5 @@ namespace AutoRegFB
             fillLoginFB();
         }
         #endregion
-
-        
-
-        
     }
 }
