@@ -922,6 +922,7 @@ namespace AutoRegFB
             String msg = "[DECAPTCHA] Working...";
             M_CAPTCHA.ReportProgress(50, msg);
             String captcha = getCaptchaCode(imageByteArray);
+            if (captcha == null) captcha = String.Empty;
             msg = "[DECAPTCHA] Result: " + captcha;
             M_CAPTCHA.ReportProgress(50, msg);
             dic.Add("value", captcha);
@@ -972,7 +973,14 @@ namespace AutoRegFB
                 String captcha = (String) dic["value"];
                 if (captcha != String.Empty)
                 {
-                    lblMsg.Text = String.Format("[REG] Email: {0} Phone {1}", EMAIL, PHONE);
+                    if (TYPE == 1)
+                    {
+                        lblMsg.Text = String.Format("[REG] Email: {0} Phone {1}", EMAIL, PHONE);
+                    }
+                    else
+                    {
+                        lblMsg.Text = String.Format("[PLAY] Email: {0} Phone {1}", EMAIL, PHONE);
+                    }
                     var input = (GeckoHtmlElement)dic["input"];
                     input.SetAttribute("value", captcha);
                     var submit = (GeckoHtmlElement)dic["submit"];
