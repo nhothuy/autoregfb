@@ -1025,11 +1025,6 @@ namespace AutoRegFB
         {
             try
             {
-                if (ACCOUNTS == null || ACCOUNTS.Count == 0) return;
-                if (MessageBox.Show("Are you sure to continue?", "AutoRegFB", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.No)
-                {
-                    return;
-                }
                 String btnText = btnLoginFB.Text;
                 if (btnText == "Stop")
                 {
@@ -1038,6 +1033,11 @@ namespace AutoRegFB
                 }
                 else if (btnText == "Login FB")
                 {
+                    if (ACCOUNTS == null || ACCOUNTS.Count == 0) return;
+                    if (MessageBox.Show("Are you sure to continue?", "AutoRegFB", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.No)
+                    {
+                        return;
+                    }
                     btnLoginFB.Text = "Stop";
                     ISSTOP_PLAY = false;
                     if (geckoWebBrowser.Url.AbsoluteUri != URL_FACEBOOK)
@@ -1470,6 +1470,18 @@ namespace AutoRegFB
                                 return;
                             }
                             captcha.Focus();
+                            return;
+                        }
+                    }
+
+                    //photo_input
+                    var photoInput = (GeckoHtmlElement)document.GetElementById("photo_input");
+                    if (photoInput != null)
+                    {
+                        String type = photoInput.GetAttribute("type");
+                        if (type != null && type == "file")
+                        {
+                            updateDone(EMAIL, true);
                             return;
                         }
                     }
