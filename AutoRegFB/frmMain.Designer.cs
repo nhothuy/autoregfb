@@ -103,6 +103,7 @@
             // chkDecaptcha
             // 
             this.chkDecaptcha.AutoSize = true;
+            this.chkDecaptcha.Enabled = false;
             this.chkDecaptcha.Location = new System.Drawing.Point(567, 467);
             this.chkDecaptcha.Name = "chkDecaptcha";
             this.chkDecaptcha.Size = new System.Drawing.Size(107, 17);

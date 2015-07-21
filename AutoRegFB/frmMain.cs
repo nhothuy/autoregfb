@@ -1025,6 +1025,11 @@ namespace AutoRegFB
         {
             try
             {
+                if (ACCOUNTS == null || ACCOUNTS.Count == 0) return;
+                if (MessageBox.Show("Are you sure to continue?", "AutoRegFB", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.No)
+                {
+                    return;
+                }
                 String btnText = btnLoginFB.Text;
                 if (btnText == "Stop")
                 {
@@ -1035,12 +1040,6 @@ namespace AutoRegFB
                 {
                     btnLoginFB.Text = "Stop";
                     ISSTOP_PLAY = false;
-
-                    if (ACCOUNTS == null || ACCOUNTS.Count == 0) return;
-                    if (MessageBox.Show("Are you sure to continue?", "AutoRegFB", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.No)
-                    {
-                        return;
-                    }
                     if (geckoWebBrowser.Url.AbsoluteUri != URL_FACEBOOK)
                     {
                         geckoWebBrowser.Navigate(URL_FACEBOOK);
@@ -1787,9 +1786,9 @@ namespace AutoRegFB
             string passw;
             string answer_captcha;
 
-            host = "api.decaptcher.com";
-            name = "hieupn";
-            passw = "abCd1234";
+            host = "xxxx";
+            name = "xxx";
+            passw = "xxxx";
             port = 36032;
             p_pict_to = 0;
             p_pict_type = 0;
@@ -1800,55 +1799,6 @@ namespace AutoRegFB
             return answer_captcha;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="image"></param>
-        /// <returns></returns>
-        private String getCaptchaCode(String image)
-        {
-            int ret;
-
-            uint p_pict_to;
-            uint p_pict_type;
-            uint major_id;
-            uint minor_id;
-            uint port;
-            //uint load;
-            string host;
-            string name;
-            string passw;
-            string answer_captcha;
-            //double balance;
-
-            host = "api.decaptcher.com";
-            name = "hieupn";
-            passw = "abCd1234";
-            port = 36032;
-            p_pict_to = 0;
-            p_pict_type = 0;
-            major_id = 0;
-            minor_id = 0;
-            //load = 0;
-
-            FileStream fs = new FileStream(image, FileMode.Open);
-
-            byte[] buffer = new byte[fs.Length];
-            fs.Read(buffer, 0, buffer.Length);
-            fs.Close();
-
-            //Get your balance
-            //ret = DecaptcherLib.Decaptcher.Balance(host, port, name, passw, out balance);
-
-            //Get load system Decaptcher.
-            //ret = DecaptcherLib.Decaptcher.SystemDecaptcherLoad(host, port, name, passw, out load);
-
-            //Send captcha to Decaptcher
-            ret = DecaptcherLib.Decaptcher.RecognizePicture(host, port, name, passw, buffer, out p_pict_to, out p_pict_type, out answer_captcha, out major_id, out minor_id);
-
-            //
-            return answer_captcha;
-        }
         #endregion
 
         #region "TIMER"
