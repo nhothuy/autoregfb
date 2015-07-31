@@ -55,7 +55,9 @@ namespace AutoRegFB
         private String URL_REG_FACEBOOK = "https://m.facebook.com/r.php";
         private String URL_FACEBOOK = "https://m.facebook.com";
         private String PASS = "admin123";
-        private String URL_ACCEPT_PK = "https://www.facebook.com/v2.2/dialog/oauth?app_id=163291417175382&client_id=163291417175382&display=popup&domain=cashkinggame.com&e2e=%7B%7D&locale=en_US&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FxRlIuTsSMoE.js%3Fversion%3D41%23cb%3Df3e4d2188dbe56c%26domain%3Dcashkinggame.com%26origin%3Dhttps%253A%252F%252Fcashkinggame.com%252Ff182e13444e3852%26relation%3Dopener%26frame%3Df233935ddfb058&response_type=token%2Csigned_request&scope=user_friends%2Cemail%2Cpublish_actions%2Cpublic_profile&sdk=joey&version=v2.2";
+        //private String URL_ACCEPT_PK = "https://www.facebook.com/v2.2/dialog/oauth?app_id=163291417175382&client_id=163291417175382&display=popup&domain=cashkinggame.com&e2e=%7B%7D&locale=en_US&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FxRlIuTsSMoE.js%3Fversion%3D41%23cb%3Df3e4d2188dbe56c%26domain%3Dcashkinggame.com%26origin%3Dhttps%253A%252F%252Fcashkinggame.com%252Ff182e13444e3852%26relation%3Dopener%26frame%3Df233935ddfb058&response_type=token%2Csigned_request&scope=user_friends%2Cemail%2Cpublish_actions%2Cpublic_profile&sdk=joey&version=v2.2";
+        //private String URL_ACCEPT_PK = "https://www.facebook.com/connect/ping?client_id=163291417175382&domain=d37p16zsmx53qq.cloudfront.net&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2F4B2NplaqNF3.js%3Fversion%3D41%23cb%3Df11476341f76698%26domain%3Dd37p16zsmx53qq.cloudfront.net%26origin%3Dhttps%253A%252F%252Fd37p16zsmx53qq.cloudfront.net%252Ff3cd51feb3c95d4%26relation%3Dparent&response_type=token%2Csigned_request%2Ccode&sdk=joey";
+        private String URL_ACCEPT_PK = "https://www.facebook.com/v2.2/dialog/oauth?app_id=163291417175382&client_id=163291417175382&display=popup&domain=d37p16zsmx53qq.cloudfront.net&e2e=%7B%7D&locale=en_US&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2F4B2NplaqNF3.js%3Fversion%3D41%23cb%3Df1b9010d1dc670e%26domain%3Dd37p16zsmx53qq.cloudfront.net%26origin%3Dhttps%253A%252F%252Fd37p16zsmx53qq.cloudfront.net%252Fff7e54c3ab653a%26relation%3Dopener%26frame%3Df91c966b33a1ea&response_type=token%2Csigned_request&scope=user_friends%2Cemail%2Cpublish_actions%2Cpublic_profile&sdk=joey&version=v2.2";
         private bool ISSTOP_REG = false;
         private bool ISSTOP_PLAY = false;
         #endregion
@@ -140,6 +142,8 @@ namespace AutoRegFB
             if (account == null)
             {
                 lblMsg.Text = "All account invited.";
+                btnLoginFB.Text = "Login FB";
+                ISSTOP_PLAY = false;
                 return;
             }
             EMAIL = account.Email;
@@ -540,6 +544,8 @@ namespace AutoRegFB
             if (account == null)
             {
                 lblMsg.Text = "All account are used.";
+                btnRegFB.Text = "Reg FB";
+                ISSTOP_REG = false;
                 return;
             }
             //
@@ -1419,7 +1425,7 @@ namespace AutoRegFB
                         if (account == null)
                         {
                             lblMsg.Text = "All account invited.";
-                            btnRegFB.Text = "Login FB";
+                            btnLoginFB.Text = "Login FB";
                             ISSTOP_PLAY = false;
                             return;
                         }
@@ -1509,9 +1515,10 @@ namespace AutoRegFB
                         if (acceptPlay != null)
                         {
                             acceptPlay.Click();
-                            TIMER_ACCEPT.Interval = 2000;
-                            TIMER_ACCEPT.Enabled = true;
-                            TIMER_ACCEPT.Tick += new System.EventHandler(this.timer_Accept_Tick);
+                            //TIMER_ACCEPT.Interval = 2000;
+                            //TIMER_ACCEPT.Enabled = true;
+                            //TIMER_ACCEPT.Tick += new System.EventHandler(this.timer_Accept_Tick);
+                            geckoWebBrowser.Reload(GeckoLoadFlags.IsRefresh);
                             return;
                         }
 
