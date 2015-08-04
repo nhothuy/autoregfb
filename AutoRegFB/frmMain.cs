@@ -1038,6 +1038,37 @@ namespace AutoRegFB
         #endregion
 
         #region "EVENTS OF CONTROLS"
+
+        private void btnInvite_Click(object sender, EventArgs e)
+        {
+            //Reset
+            foreach (Acc acc in ACCOUNTSFB)
+            {
+                acc.Done = false;
+            }
+            //
+            lblMsg.Text = String.Empty;
+            FBIDS = MyFile.ReadFile(FILENAME_FBIDS_OUT).Trim();
+            if (FBIDS == String.Empty)
+            {
+                lblMsg.Text = String.Format("[INVITE] FBIDS is empty.");
+                return;
+            }
+            if (geckoWebBrowser.Url.AbsoluteUri != URL_FACEBOOK)
+            {
+                geckoWebBrowser.Navigate(URL_FACEBOOK);
+                TIMER_INVITE.Interval = 2000;
+                TIMER_INVITE.Enabled = true;
+                TIMER_INVITE.Tick += new System.EventHandler(this.timer_Invite_Tick);
+            }
+            else
+            {
+                TYPE = 3;
+                STEP = 1;
+                fillLoginInviteFB();
+            }
+        }
+
         private void btnLogOut_Click(object sender, EventArgs e)
         {
             try
@@ -2004,29 +2035,7 @@ namespace AutoRegFB
         }
         #endregion
 
-        private void btnInvite_Click(object sender, EventArgs e)
-        {
-            lblMsg.Text = String.Empty;
-            FBIDS = MyFile.ReadFile(FILENAME_FBIDS_OUT).Trim();
-            if (FBIDS == String.Empty)
-            {
-                lblMsg.Text = String.Format("[INVITE] FBIDS is empty.");
-                return;
-            }
-            if (geckoWebBrowser.Url.AbsoluteUri != URL_FACEBOOK)
-            {
-                geckoWebBrowser.Navigate(URL_FACEBOOK);
-                TIMER_INVITE.Interval = 2000;
-                TIMER_INVITE.Enabled = true;
-                TIMER_INVITE.Tick += new System.EventHandler(this.timer_Invite_Tick);
-            }
-            else
-            {
-                TYPE = 3;
-                STEP = 1;
-                fillLoginInviteFB();
-            }
-        }
+        
 
         
     }
