@@ -1001,6 +1001,45 @@ namespace AutoRegFB
         #endregion
 
         #region "EVENTS OF CONTROLS"
+        private void btnLogOut_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+                var logout = getGeckoHtmlElementLogout(document);
+                if (logout != null)
+                {
+                    //Lưu thông tin
+                    String cookie = document.Cookie;
+                    if (cookie != String.Empty)
+                    {
+                        String[] arrCookie = cookie.Split(';');
+                        foreach (String cook in arrCookie)
+                        {
+                            if (cook.Trim().StartsWith("c_user="))
+                            {
+                                String fbid = cook.Replace("c_user=", "").Trim();
+                                if (fbid != String.Empty)
+                                {
+                                    saveFileFbids(fbid);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    //
+                    updateSatatus(EMAIL, true);
+                    //
+                    STEP = 2;
+                    //logout
+                    logout.Click();
+                    return;
+                }
+            }
+            catch
+            {
+            }
+        }
         private void btnGetPinCode_Click(object sender, EventArgs e)
         {
             try
@@ -1613,7 +1652,7 @@ namespace AutoRegFB
             foreach (GeckoElement node in nodes)
             {
                 String html = ((GeckoHtmlElement)node).InnerHtml;
-                if (html != null && (html.Contains("Không thể xác thực") || html.Contains("lòng thử lại số khác") || html.Contains("try a different number") || html.Contains("sử dụng một địa chỉ email hoặc số di động") || html.Contains("already in use by a registered account") || html.Contains("Could not validate your mobile number")))
+                if (html != null && (html.Contains("bạn đã có tài khoản") || html.Contains("Không thể xác thực") || html.Contains("lòng thử lại số khác") || html.Contains("try a different number") || html.Contains("sử dụng một địa chỉ email hoặc số di động") || html.Contains("already in use by a registered account") || html.Contains("Could not validate your mobile number")))
                 {
                     return (GeckoHtmlElement)node; 
                 }
@@ -1842,5 +1881,7 @@ namespace AutoRegFB
             fillLoginFB();
         }
         #endregion
+
+        
     }
 }

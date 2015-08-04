@@ -40,6 +40,7 @@
             this.btnOpenFBIDS = new System.Windows.Forms.Button();
             this.btnCleanMsg = new System.Windows.Forms.Button();
             this.btnGetPinCode = new System.Windows.Forms.Button();
+            this.btnLogOut = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // geckoWebBrowser
@@ -152,11 +153,22 @@
             this.btnGetPinCode.UseVisualStyleBackColor = true;
             this.btnGetPinCode.Click += new System.EventHandler(this.btnGetPinCode_Click);
             // 
+            // btnLogOut
+            // 
+            this.btnLogOut.Location = new System.Drawing.Point(575, 263);
+            this.btnLogOut.Name = "btnLogOut";
+            this.btnLogOut.Size = new System.Drawing.Size(99, 23);
+            this.btnLogOut.TabIndex = 14;
+            this.btnLogOut.Text = "Log Out";
+            this.btnLogOut.UseVisualStyleBackColor = true;
+            this.btnLogOut.Click += new System.EventHandler(this.btnLogOut_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(678, 486);
+            this.Controls.Add(this.btnLogOut);
             this.Controls.Add(this.btnGetPinCode);
             this.Controls.Add(this.btnCleanMsg);
             this.Controls.Add(this.btnOpenFBIDS);
@@ -194,6 +206,7 @@
         private System.Windows.Forms.Button btnOpenFBIDS;
         private System.Windows.Forms.Button btnCleanMsg;
         private System.Windows.Forms.Button btnGetPinCode;
+        private System.Windows.Forms.Button btnLogOut;
     }
 }
 
