@@ -1622,7 +1622,7 @@ namespace AutoRegFB
                         if (acceptPlay != null)
                         {
                             acceptPlay.Click();
-                            TIMER_ACCEPT.Interval = 1000;
+                            TIMER_ACCEPT.Interval = 2000;
                             TIMER_ACCEPT.Enabled = true;
                             TIMER_ACCEPT.Tick += new System.EventHandler(this.timer_Accept_Tick);
                             return;
