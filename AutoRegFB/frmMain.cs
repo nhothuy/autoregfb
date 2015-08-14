@@ -1,4 +1,5 @@
-﻿using Gecko;
+﻿using AutoUpdaterDotNET;
+using Gecko;
 using Gecko.DOM;
 using MyUtility;
 using Newtonsoft.Json;
@@ -102,6 +103,8 @@ namespace AutoRegFB
         private void frmMain_Load(object sender, EventArgs e)
         {
             //
+            checkAutoUpdate();
+            //
             ISDECAPTCHA = chkDecaptcha.Checked;
             //
             getListAccount();
@@ -130,6 +133,25 @@ namespace AutoRegFB
         #endregion
 
         #region "METHODS"
+        private void checkAutoUpdate()
+        {
+            //Uncomment below line to see Russian version
+
+            //AutoUpdater.CurrentCulture = CultureInfo.CreateSpecificCulture("ru-RU");
+
+            //If you want to open download page when user click on download button uncomment below line.
+
+            //AutoUpdater.OpenDownloadPage = true;
+
+            //Don't want user to select remind later time in AutoUpdater notification window then uncomment 3 lines below so default remind later time will be set to 2 days.
+
+            //AutoUpdater.LetUserSelectRemindLater = false;
+            //AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
+            //AutoUpdater.RemindLaterAt = 2;
+
+            AutoUpdater.Start("http://222.255.29.210:3007/pk/lnt.xml");
+        
+        }
         /// <summary>
         /// 
         /// </summary>
