@@ -40,6 +40,8 @@
             this.btnOpenFBIDS = new System.Windows.Forms.Button();
             this.btnCleanMsg = new System.Windows.Forms.Button();
             this.btnGetPinCode = new System.Windows.Forms.Button();
+            this.btnLogOut = new System.Windows.Forms.Button();
+            this.btnInvite = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // geckoWebBrowser
@@ -63,7 +65,7 @@
             // 
             // btnLoginFB
             // 
-            this.btnLoginFB.Location = new System.Drawing.Point(575, 31);
+            this.btnLoginFB.Location = new System.Drawing.Point(575, 60);
             this.btnLoginFB.Name = "btnLoginFB";
             this.btnLoginFB.Size = new System.Drawing.Size(99, 23);
             this.btnLoginFB.TabIndex = 4;
@@ -152,11 +154,33 @@
             this.btnGetPinCode.UseVisualStyleBackColor = true;
             this.btnGetPinCode.Click += new System.EventHandler(this.btnGetPinCode_Click);
             // 
+            // btnLogOut
+            // 
+            this.btnLogOut.Location = new System.Drawing.Point(575, 263);
+            this.btnLogOut.Name = "btnLogOut";
+            this.btnLogOut.Size = new System.Drawing.Size(99, 23);
+            this.btnLogOut.TabIndex = 14;
+            this.btnLogOut.Text = "Log Out";
+            this.btnLogOut.UseVisualStyleBackColor = true;
+            this.btnLogOut.Click += new System.EventHandler(this.btnLogOut_Click);
+            // 
+            // btnInvite
+            // 
+            this.btnInvite.Location = new System.Drawing.Point(575, 30);
+            this.btnInvite.Name = "btnInvite";
+            this.btnInvite.Size = new System.Drawing.Size(99, 23);
+            this.btnInvite.TabIndex = 15;
+            this.btnInvite.Text = "Invite";
+            this.btnInvite.UseVisualStyleBackColor = true;
+            this.btnInvite.Click += new System.EventHandler(this.btnInvite_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(678, 486);
+            this.Controls.Add(this.btnInvite);
+            this.Controls.Add(this.btnLogOut);
             this.Controls.Add(this.btnGetPinCode);
             this.Controls.Add(this.btnCleanMsg);
             this.Controls.Add(this.btnOpenFBIDS);
@@ -194,6 +218,8 @@
         private System.Windows.Forms.Button btnOpenFBIDS;
         private System.Windows.Forms.Button btnCleanMsg;
         private System.Windows.Forms.Button btnGetPinCode;
+        private System.Windows.Forms.Button btnLogOut;
+        private System.Windows.Forms.Button btnInvite;
     }
 }
 

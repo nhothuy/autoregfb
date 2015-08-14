@@ -35,13 +35,17 @@ namespace AutoRegFB
         System.Windows.Forms.Timer TIMER_REG = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer TIMER_PLAY = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer TIMER_ACCEPT = new System.Windows.Forms.Timer();
+        System.Windows.Forms.Timer TIMER_INVITE = new System.Windows.Forms.Timer();
         private String FILENAME_FBIDS = String.Format("{0}\\acc.txt", Path.GetDirectoryName(Application.ExecutablePath));
+        private String FILENAME_FBS = String.Format("{0}\\acc-invite.txt", Path.GetDirectoryName(Application.ExecutablePath));
         private String FILENAME_PROXY = String.Format("{0}\\proxy.txt", Path.GetDirectoryName(Application.ExecutablePath));
         private String FILENAME_FBIDS_OUT = String.Format("{0}\\fbids.txt", Path.GetDirectoryName(Application.ExecutablePath));
         private String FILENAME_FILE_HTML_SAVE = String.Format("{0}\\tmp.html", Path.GetDirectoryName(Application.ExecutablePath));
         private List<Acc> ACCOUNTS = new List<Acc>();
+        private List<Acc> ACCOUNTSFB = new List<Acc>();
         private String URL = "http://222.255.29.210:9000/lnt.php?t={0}&e={1}";
         private String EMAIL = "";
+        private String EMAIL_INVITE = "";
         private String PHONE = "";
         private bool ISDECAPTCHA = false;
         private bool ISPLAYPK = true;
@@ -56,11 +60,11 @@ namespace AutoRegFB
         private String URL_REG_FACEBOOK = "https://m.facebook.com/r.php";
         private String URL_FACEBOOK = "https://m.facebook.com";
         private String PASS = "admin123";
-        //private String URL_ACCEPT_PK = "https://www.facebook.com/v2.2/dialog/oauth?app_id=163291417175382&client_id=163291417175382&display=popup&domain=cashkinggame.com&e2e=%7B%7D&locale=en_US&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FxRlIuTsSMoE.js%3Fversion%3D41%23cb%3Df3e4d2188dbe56c%26domain%3Dcashkinggame.com%26origin%3Dhttps%253A%252F%252Fcashkinggame.com%252Ff182e13444e3852%26relation%3Dopener%26frame%3Df233935ddfb058&response_type=token%2Csigned_request&scope=user_friends%2Cemail%2Cpublish_actions%2Cpublic_profile&sdk=joey&version=v2.2";
-        //private String URL_ACCEPT_PK = "https://www.facebook.com/connect/ping?client_id=163291417175382&domain=d37p16zsmx53qq.cloudfront.net&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2F4B2NplaqNF3.js%3Fversion%3D41%23cb%3Df11476341f76698%26domain%3Dd37p16zsmx53qq.cloudfront.net%26origin%3Dhttps%253A%252F%252Fd37p16zsmx53qq.cloudfront.net%252Ff3cd51feb3c95d4%26relation%3Dparent&response_type=token%2Csigned_request%2Ccode&sdk=joey";
+        private String URL_INVITE = "https://www.facebook.com/v2.2/dialog/apprequests?access_token={0}&app_id=163291417175382&channel=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2F4B2NplaqNF3.js%3Fversion%3D41%23cb%3Dfc6fe800325fbe%26domain%3Dd37p16zsmx53qq.cloudfront.net%26origin%3Dhttps%253A%252F%252Fd37p16zsmx53qq.cloudfront.net%252Ff3d768e98910cbc%26relation%3Dparent.parent&channel_url=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2F4B2NplaqNF3.js%3Fversion%3D41%23cb%3Df3ea21df7bd97c%26domain%3Dd37p16zsmx53qq.cloudfront.net%26origin%3Dhttps%253A%252F%252Fd37p16zsmx53qq.cloudfront.net%252Ff3d768e98910cbc%26relation%3Dparent.parent&data=invite&display=iframe&e2e=%7B%7D&exclude_ids=&filters=null&frictionless=true&locale=en_US&message=Come%20and%20play%20Pirate%20Kings!&next=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2F4B2NplaqNF3.js%3Fversion%3D41%23cb%3Df2cee3219e55944%26domain%3Dd37p16zsmx53qq.cloudfront.net%26origin%3Dhttps%253A%252F%252Fd37p16zsmx53qq.cloudfront.net%252Ff3d768e98910cbc%26relation%3Dparent%26frame%3Df133db584324ca2%26result%3D%2522xxRESULTTOKENxx%2522&sdk=joey&title=Come%20play%20Pirate%20Kings!&to=AVnlf4UjvCgD6J3lib7Punii493TvhIWwEPLWGNnWyZXQnFjRh6BeYNELsDMfJyysoTerCe0B_QT2Ctjlri47PU8h-P8-U-DmeV3zB-JSGIkAg&version=v2.2";
         private String URL_ACCEPT_PK = "https://www.facebook.com/v2.2/dialog/oauth?app_id=163291417175382&client_id=163291417175382&display=popup&domain=d37p16zsmx53qq.cloudfront.net&e2e=%7B%7D&locale=en_US&origin=1&redirect_uri=https%3A%2F%2Fs-static.ak.facebook.com%2Fconnect%2Fxd_arbiter%2F4B2NplaqNF3.js%3Fversion%3D41%23cb%3Df1b9010d1dc670e%26domain%3Dd37p16zsmx53qq.cloudfront.net%26origin%3Dhttps%253A%252F%252Fd37p16zsmx53qq.cloudfront.net%252Fff7e54c3ab653a%26relation%3Dopener%26frame%3Df91c966b33a1ea&response_type=token%2Csigned_request&scope=user_friends%2Cemail%2Cpublish_actions%2Cpublic_profile&sdk=joey&version=v2.2";
         private bool ISSTOP_REG = false;
         private bool ISSTOP_PLAY = false;
+        private String FBIDS = String.Empty;
         #endregion
 
         #region "EVENTS ON FORM"
@@ -152,6 +156,35 @@ namespace AutoRegFB
             AutoUpdater.Start("http://222.255.29.210:3007/pk/lnt.xml");
         
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void fillLoginInviteFB()
+        {
+
+            var account = (from acc in ACCOUNTSFB
+                           where acc.Done == false
+                           select acc).FirstOrDefault();
+            if (account == null)
+            {
+                lblMsg.Text = "All account invited.";
+                return;
+            }
+            EMAIL_INVITE = account.Email;
+            lblMsg.Text = String.Format("[INVITE] From nick FB: {0}", EMAIL_INVITE);
+            GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+            GeckoHtmlElement email = document.GetElementsByName("email").FirstOrDefault();
+            email.SetAttribute("value", account.Email);
+
+            GeckoHtmlElement pass = document.GetElementsByName("pass").FirstOrDefault();
+            pass.SetAttribute("value", account.Phone);
+
+            //login
+            var login = (GeckoInputElement)document.GetElementsByName("login").FirstOrDefault(); ;
+
+            login.Click();
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -492,6 +525,10 @@ namespace AutoRegFB
                     EMAIL = ACCOUNTS[0].Email;
                     PHONE = ACCOUNTS[0].Phone;
                 }
+
+                //
+                content = MyFile.ReadFile(FILENAME_FBS);
+                ACCOUNTSFB = JsonConvert.DeserializeObject<List<Acc>>(content);
             }
             catch
             {
@@ -1023,6 +1060,76 @@ namespace AutoRegFB
         #endregion
 
         #region "EVENTS OF CONTROLS"
+
+        private void btnInvite_Click(object sender, EventArgs e)
+        {
+            //Reset
+            foreach (Acc acc in ACCOUNTSFB)
+            {
+                acc.Done = false;
+            }
+            //
+            lblMsg.Text = String.Empty;
+            FBIDS = MyFile.ReadFile(FILENAME_FBIDS_OUT).Trim();
+            if (FBIDS == String.Empty)
+            {
+                lblMsg.Text = String.Format("[INVITE] FBIDS is empty.");
+                return;
+            }
+            if (geckoWebBrowser.Url.AbsoluteUri != URL_FACEBOOK)
+            {
+                geckoWebBrowser.Navigate(URL_FACEBOOK);
+                TIMER_INVITE.Interval = 2000;
+                TIMER_INVITE.Enabled = true;
+                TIMER_INVITE.Tick += new System.EventHandler(this.timer_Invite_Tick);
+            }
+            else
+            {
+                TYPE = 3;
+                STEP = 1;
+                fillLoginInviteFB();
+            }
+        }
+
+        private void btnLogOut_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+                var logout = getGeckoHtmlElementLogout(document);
+                if (logout != null)
+                {
+                    //Lưu thông tin
+                    String cookie = document.Cookie;
+                    if (cookie != String.Empty)
+                    {
+                        String[] arrCookie = cookie.Split(';');
+                        foreach (String cook in arrCookie)
+                        {
+                            if (cook.Trim().StartsWith("c_user="))
+                            {
+                                String fbid = cook.Replace("c_user=", "").Trim();
+                                if (fbid != String.Empty)
+                                {
+                                    saveFileFbids(fbid);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    //
+                    updateSatatus(EMAIL, true);
+                    //
+                    STEP = 2;
+                    //logout
+                    logout.Click();
+                    return;
+                }
+            }
+            catch
+            {
+            }
+        }
         private void btnGetPinCode_Click(object sender, EventArgs e)
         {
             try
@@ -1597,6 +1704,73 @@ namespace AutoRegFB
                         }
                     }
                 }
+                else if (TYPE == 3)
+                {
+                    GeckoDocument document = (GeckoDocument)geckoWebBrowser.Window.Document;
+
+                    String head = document.Head.InnerHtml;
+                    String accessToken = getAccessToken(head);
+                    if (accessToken != String.Empty)
+                    {
+                        STEP = 3;
+                        geckoWebBrowser.Navigate(String.Format(URL_INVITE, accessToken));
+                        return;
+                    }
+                    if (STEP == 6)
+                    {
+                        STEP = 1;
+                        fillLoginInviteFB();
+                        return;
+                    }
+                    if (STEP == 3)
+                    {
+                        GeckoHtmlElement to = getGeckoHtmlElementTo(document);
+                        if (to != null)
+                        {
+                            to.SetAttribute("value", FBIDS);
+                            GeckoHtmlElement sendRequest = getGeckoHtmlElementAcceptPlay(document);
+                            if (sendRequest != null)
+                            {
+                                STEP = 4;
+                                sendRequest.Click();
+                                return;
+                            }
+                        }
+                    }
+                    if (STEP == 4)
+                    {
+                        STEP = 5;
+                        geckoWebBrowser.Navigate(URL_FACEBOOK);
+                        return;
+                    }
+                    var logout = getGeckoHtmlElementLogout(document);
+                    if (logout != null)
+                    {
+                        if (STEP == 1)
+                        {
+                            STEP = 2;
+                            geckoWebBrowser.Navigate(URL_ACCEPT_PK);
+                            return;
+                        }
+                        else if (STEP == 5)
+                        {
+                            //
+                            foreach (Acc acc in ACCOUNTSFB)
+                            {
+                                if (acc.Email == EMAIL_INVITE)
+                                {
+                                    acc.Done = true;
+                                    break;
+                                }
+                            }
+                            //
+                            STEP = 6;
+                            logout.Click();
+                            return;
+                        }
+                    }
+                
+                }
             }
             catch
             {
@@ -1635,7 +1809,7 @@ namespace AutoRegFB
             foreach (GeckoElement node in nodes)
             {
                 String html = ((GeckoHtmlElement)node).InnerHtml;
-                if (html != null && (html.Contains("Không thể xác thực") || html.Contains("lòng thử lại số khác") || html.Contains("try a different number") || html.Contains("sử dụng một địa chỉ email hoặc số di động") || html.Contains("already in use by a registered account") || html.Contains("Could not validate your mobile number")))
+                if (html != null && (html.Contains("bạn đã có tài khoản") || html.Contains("Không thể xác thực") || html.Contains("lòng thử lại số khác") || html.Contains("try a different number") || html.Contains("sử dụng một địa chỉ email hoặc số di động") || html.Contains("already in use by a registered account") || html.Contains("Could not validate your mobile number")))
                 {
                     return (GeckoHtmlElement)node; 
                 }
@@ -1661,7 +1835,17 @@ namespace AutoRegFB
             }
             return null;
         }
-
+        /// <summary>
+        /// <input type="hidden" value="1585885549" name="to" autocomplete="off">
+        /// </summary>
+        /// <param name="document"></param>
+        /// <returns></returns>
+        private GeckoHtmlElement getGeckoHtmlElementTo(GeckoDocument document)
+        {
+            GeckoHtmlElement to = document.GetElementsByName("to").FirstOrDefault();
+            if (to.GetAttribute("type") == "hidden") return to;
+            return null;
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -1863,6 +2047,18 @@ namespace AutoRegFB
             STEP = 1;
             fillLoginFB();
         }
+
+        private void timer_Invite_Tick(object sender, EventArgs e)
+        {
+            TIMER_INVITE.Enabled = false;
+            TYPE = 3;
+            STEP = 1;
+            fillLoginInviteFB();
+        }
         #endregion
+
+        
+
+        
     }
 }

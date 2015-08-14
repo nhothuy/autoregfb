@@ -152,7 +152,9 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Libs\Geckofx-Core.dll.config" />
-    <None Include="lnt.php" />
+    <None Include="lnt.php">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
