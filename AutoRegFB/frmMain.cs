@@ -30,7 +30,7 @@ namespace AutoRegFB
     public partial class frmMain : Form
     {
         #region "PARAMS"
-        int STEP = 1;
+        int STEP = 0;
         System.Windows.Forms.Timer TIMER_REG = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer TIMER_PLAY = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer TIMER_ACCEPT = new System.Windows.Forms.Timer();
@@ -1323,7 +1323,12 @@ namespace AutoRegFB
         {
             try
             {
-
+                if (STEP == 0)
+                {
+                    //On first load
+                    STEP = 1;
+                    return;
+                }
                 if (TYPE == 1)
                 {
                     if (STEP == -1)
